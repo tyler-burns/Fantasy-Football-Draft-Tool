@@ -1,0 +1,31 @@
+.section {
+  margin-bottom: 16px;
+}
+
+.heading {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 12px;
+}
+
+.flexRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+
+.note {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 4px 0 8px;
+}
