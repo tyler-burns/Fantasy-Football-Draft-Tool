@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fantasy-football-value"
+version = "0.1.0"
+description = "Fantasy football draft value tool — data layer"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3"]
+
+[project.scripts]
+ffv-build = "fantasy_value.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fantasy_value"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["error"]

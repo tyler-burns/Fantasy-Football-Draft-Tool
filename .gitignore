@@ -14,6 +14,13 @@ frontend/dist/
 # Raw API caches (large, regenerable — never commit)
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/manual-projections.csv
+
+# Leaked atomic-write temp files (should never survive a normal run)
+data/processed/.*.tmp-*
+
+# Local pre-publish safety-net backup -- git history is the real "previous"
+data/processed/*.previous.json
 
 # OS
 .DS_Store
