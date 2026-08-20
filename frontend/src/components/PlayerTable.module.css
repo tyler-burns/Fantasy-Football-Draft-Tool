@@ -57,3 +57,30 @@
   text-align: center;
   color: var(--text-muted);
 }
+
+.table tbody tr {
+  cursor: pointer;
+}
+
+.table tbody tr:hover {
+  background: var(--bg-alt);
+}
+
+.drafted {
+  opacity: 0.55;
+}
+
+.draftButton {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.draftButton:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}

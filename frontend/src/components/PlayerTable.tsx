@@ -4,7 +4,7 @@ import { PlayerRow } from './PlayerRow'
 import styles from './PlayerTable.module.css'
 
 interface ColumnDef {
-  readonly key: SortColumn | null // null = not sortable (Player, Team, Pos)
+  readonly key: SortColumn | null // null = not sortable (Player, Team, Pos, Action)
   readonly label: string
 }
 
@@ -19,6 +19,7 @@ function columns(valueLabel: string): ColumnDef[] {
     { key: 'vona', label: 'VONA' },
     { key: 'adp', label: 'ADP' },
     { key: 'value', label: valueLabel },
+    { key: null, label: '' },
   ]
 }
 
@@ -26,10 +27,21 @@ interface PlayerTableProps {
   readonly rows: readonly RankedPlayer[]
   readonly sort: SortState
   readonly valueLabel: string
+  readonly draftedSet: ReadonlySet<string>
   readonly onSortChange: (sort: SortState) => void
+  readonly onToggleDraft: (playerId: string) => void
+  readonly onSelectPlayer: (playerId: string) => void
 }
 
-export function PlayerTable({ rows, sort, valueLabel, onSortChange }: PlayerTableProps) {
+export function PlayerTable({
+  rows,
+  sort,
+  valueLabel,
+  draftedSet,
+  onSortChange,
+  onToggleDraft,
+  onSelectPlayer,
+}: PlayerTableProps) {
   function handleHeaderClick(column: SortColumn) {
     if (sort.column === column) {
       onSortChange({ column, direction: sort.direction === 'asc' ? 'desc' : 'asc' })
@@ -50,7 +62,7 @@ export function PlayerTable({ rows, sort, valueLabel, onSortChange }: PlayerTabl
               const ariaSort = isActive ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined
               return (
                 <th
-                  key={col.label}
+                  key={col.label || 'action'}
                   className={col.key ? `sortable ${isActive ? styles.active : ''}` : ''}
                   aria-sort={ariaSort}
                   onClick={col.key ? () => handleHeaderClick(col.key!) : undefined}
@@ -64,7 +76,13 @@ export function PlayerTable({ rows, sort, valueLabel, onSortChange }: PlayerTabl
         </thead>
         <tbody>
           {rows.map((player) => (
-            <PlayerRow key={player.player_id} player={player} />
+            <PlayerRow
+              key={player.player_id}
+              player={player}
+              isDrafted={draftedSet.has(player.player_id)}
+              onToggleDraft={onToggleDraft}
+              onSelect={onSelectPlayer}
+            />
           ))}
         </tbody>
       </table>

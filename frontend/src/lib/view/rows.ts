@@ -3,6 +3,7 @@
 // testing-strategy note).
 
 import type { RankedPlayer } from '../ranking/modes'
+import { matchesProjectionQuery } from '../search'
 
 export interface RowFilters {
   readonly position: string | null // null = all positions
@@ -22,15 +23,8 @@ export interface SortState {
 
 export const DEFAULT_SORT: SortState = { column: 'overall_rank', direction: 'asc' }
 
-function normalize(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]/g, '')
-}
-
 function matchesQuery(player: RankedPlayer, query: string): boolean {
-  if (!query) return true
-  const needle = normalize(query)
-  const haystacks = [player.projection.name, player.projection.team, player.projection.search_full_name]
-  return haystacks.some((h) => h !== null && normalize(h).includes(needle))
+  return matchesProjectionQuery(player.projection, query)
 }
 
 export function applyFilters(players: readonly RankedPlayer[], filters: RowFilters): RankedPlayer[] {

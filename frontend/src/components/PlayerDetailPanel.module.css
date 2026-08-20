@@ -1,0 +1,107 @@
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  max-width: 100vw;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  padding: 16px;
+  z-index: 20;
+}
+
+.closeRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.close {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.close:hover {
+  color: var(--text-h);
+}
+
+.identity h2 {
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+
+.identity p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.section {
+  margin-top: 16px;
+}
+
+.heading {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.statLine {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  color: var(--text-muted);
+  display: inline-block;
+  width: 72px;
+}
+
+.total {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.breakdown {
+  font-family: var(--mono);
+  font-size: 12px;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  column-gap: 8px;
+  row-gap: 2px;
+  align-items: baseline;
+}
+
+.termLabel {
+  color: var(--text-muted);
+}
+
+.termArithmetic {
+  white-space: nowrap;
+}
+
+.termPoints {
+  text-align: right;
+}
+
+.valuationGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.positive {
+  color: var(--positive);
+}
+
+.negative {
+  color: var(--danger);
+}

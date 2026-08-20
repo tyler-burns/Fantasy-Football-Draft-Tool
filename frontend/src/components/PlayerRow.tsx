@@ -4,6 +4,9 @@ import styles from './PlayerTable.module.css'
 
 interface PlayerRowProps {
   readonly player: RankedPlayer
+  readonly isDrafted: boolean
+  readonly onToggleDraft: (playerId: string) => void
+  readonly onSelect: (playerId: string) => void
 }
 
 function signedClass(value: number | null): string {
@@ -13,10 +16,10 @@ function signedClass(value: number | null): string {
   return ''
 }
 
-export function PlayerRow({ player }: PlayerRowProps) {
+export function PlayerRow({ player, isDrafted, onToggleDraft, onSelect }: PlayerRowProps) {
   const p = player.projection
   return (
-    <tr>
+    <tr className={isDrafted ? styles.drafted : ''} onClick={() => onSelect(player.player_id)}>
       <td className={styles.numeric}>{formatRank(player.overall_rank)}</td>
       <td>{p.name ?? '—'}</td>
       <td>{p.team ?? '—'}</td>
@@ -26,6 +29,18 @@ export function PlayerRow({ player }: PlayerRowProps) {
       <td className={`${styles.numeric} ${signedClass(player.vona)}`}>{formatSigned(player.vona)}</td>
       <td className={styles.numeric}>{formatNumber(player.adp, 0)}</td>
       <td className={`${styles.numeric} ${signedClass(player.value)}`}>{formatSigned(player.value)}</td>
+      <td>
+        <button
+          type="button"
+          className={styles.draftButton}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggleDraft(player.player_id)
+          }}
+        >
+          {isDrafted ? 'Undraft' : 'Draft'}
+        </button>
+      </td>
     </tr>
   )
 }

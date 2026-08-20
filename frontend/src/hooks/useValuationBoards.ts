@@ -8,6 +8,8 @@ import type { LeagueConfig } from '../lib/valuation/league'
 import type { ScoringConfig } from '../lib/scoring/types'
 import { applyFilters, applySort, type RowFilters, type SortState } from '../lib/view/rows'
 
+export type Availability = 'available' | 'drafted' | 'all'
+
 /** The derived pipeline: score -> two boards -> ranked rows. A full
  * recompute over ~300 players is on the order of 10^4 elementary
  * operations, sub-millisecond in V8 -- rendering the table dominates. The
@@ -22,6 +24,7 @@ export function useValuationBoards(
   rankingMode: RankingMode,
   filters: RowFilters,
   sort: SortState,
+  availability: Availability,
 ) {
   const projectionsById = useMemo(() => new Map(players.map((p) => [p.player_id, p])), [players])
 
@@ -30,7 +33,9 @@ export function useValuationBoards(
   // Replacement levels are identical between these two boards (both are
   // computed from the same full `scored` pool -- see board.ts's docstring);
   // they differ only in which players are listed, which is what makes
-  // fullBoard the draft-invariant basis for "model rank" (ranking/modes.ts).
+  // fullBoard the draft-invariant basis for "model rank" (ranking/modes.ts)
+  // and the only self-consistent source for a drafted player's PAR/VONA
+  // ("what he was worth in the undrafted universe").
   const fullBoard = useMemo(() => buildBoard(scored, league), [scored, league])
   const availableBoard = useMemo(
     () => buildBoard(scored, league, { drafted: draftedSet }),
@@ -46,7 +51,13 @@ export function useValuationBoards(
     [fullBoard, rankingMode, projectionsById, draftedSet],
   )
 
-  const rows = useMemo(() => applySort(applyFilters(rankedAvailable, filters), sort), [rankedAvailable, filters, sort])
+  const source = useMemo(() => {
+    if (availability === 'available') return rankedAvailable
+    if (availability === 'drafted') return rankedDrafted
+    return [...rankedAvailable, ...rankedDrafted]
+  }, [availability, rankedAvailable, rankedDrafted])
 
-  return { fullBoard, availableBoard, rankedAvailable, rankedDrafted, rows }
+  const rows = useMemo(() => applySort(applyFilters(source, filters), sort), [source, filters, sort])
+
+  return { fullBoard, availableBoard, rankedAvailable, rankedDrafted, rows, projectionsById }
 }
