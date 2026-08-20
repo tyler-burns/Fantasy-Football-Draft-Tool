@@ -10,6 +10,7 @@ venv/
 node_modules/
 frontend/dist/
 .vite/
+frontend/public/data/projections.json
 
 # Raw API caches (large, regenerable — never commit)
 data/raw/*
