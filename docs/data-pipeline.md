@@ -46,9 +46,10 @@ required week or the player master isn't already cached.
    `receptions <= rec_tgt`, `games_proj <= 18`, sanity ranges for the
    top-12 QB / top-24 RB by ADP (falls back to `reference_pts_ppr` ranking
    if fewer than N players at that position have an ADP).
-3. **Tier 3 (reference cross-check)** — computes each player's points under
-   the Section 13 default PPR weights and compares to Sleeper's own
-   `pts_ppr` total (players with any week missing that reference value are
+3. **Tier 3 (reference cross-check)** — computes each player's points using
+   `fantasy_value.scoring.presets.PPR` (Phase 2's scoring engine, Section 13
+   defaults) and compares to Sleeper's own `pts_ppr` total (players with any
+   week missing that reference value are
    excluded from the comparison, not just skipped-with-a-null). This is
    the only check that would catch a mistyped raw-stat mapping, since a
    silently-zeroed column passes every other check.

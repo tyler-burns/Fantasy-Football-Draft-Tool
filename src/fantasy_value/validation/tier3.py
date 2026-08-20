@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import Sequence
 
 from fantasy_value.projections.models import PlayerProjection
+from fantasy_value.scoring.calculator import score_projection
+from fantasy_value.scoring.presets import PPR
 from fantasy_value.validation.models import Severity, Tier3Summary, ValidationIssue
-from fantasy_value.validation.reference_scoring import compute_reference_ppr
 
 MIN_REFERENCE_PTS = 10.0
 DIVERGENCE_THRESHOLD = 0.10
@@ -13,9 +14,9 @@ WORST_OFFENDERS_SHOWN = 10
 
 
 def run_tier3(projections: Sequence[PlayerProjection]) -> tuple[Tier3Summary, list[ValidationIssue]]:
-    """Section 9.3: compute fantasy points under a standard PPR preset per
-    player and compare to `reference_pts_ppr` (Sleeper's own precomputed
-    total). Only compares players with a real, complete reference total
+    """Section 9.3: compute fantasy points under the scoring.presets.PPR
+    preset per player and compare to `reference_pts_ppr` (Sleeper's own
+    precomputed total). Only compares players with a real, complete reference total
     (>= MIN_REFERENCE_PTS; the normalizer already nulls reference_pts_ppr
     out for players with any week missing a reference total, so partial
     sums never reach here). Never blocks publication -- emits one loud WARNING plus a
@@ -25,7 +26,7 @@ def run_tier3(projections: Sequence[PlayerProjection]) -> tuple[Tier3Summary, li
 
     diffs: list[tuple[PlayerProjection, float, float]] = []  # (proj, computed, pct_diff)
     for proj in comparable:
-        computed = compute_reference_ppr(proj)
+        computed = score_projection(proj, PPR)
         reference = proj.reference_pts_ppr
         assert reference is not None
         pct_diff = abs(computed - reference) / reference

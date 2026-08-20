@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 
 from fantasy_value.projections.models import PlayerProjection
-from fantasy_value.validation.reference_scoring import REFERENCE_PPR_WEIGHTS, compute_reference_ppr
+from fantasy_value.scoring.calculator import score_projection
+from fantasy_value.scoring.presets import PPR
 from fantasy_value.validation.required_fields import check_required_fields
 from fantasy_value.validation.runner import run_validation
 from fantasy_value.validation.tier2 import (
@@ -142,24 +143,12 @@ class TestTier3ReferenceCrossCheck:
         summary, issues = run_tier3([proj])
         assert summary.compared == 0
 
-    def test_reference_weights_match_section_13_defaults(self) -> None:
-        assert REFERENCE_PPR_WEIGHTS == {
-            "pass_yds_per_point": 25.0,
-            "pass_td_points": 4.0,
-            "pass_int_points": -2.0,
-            "rush_yds_per_point": 10.0,
-            "rush_td_points": 6.0,
-            "reception_points": 1.0,
-            "rec_yds_per_point": 10.0,
-            "rec_td_points": 6.0,
-            "fumble_lost_points": -2.0,
-        }
-
     def test_worked_example_from_spec_section_13_4(self) -> None:
         # Josh Allen worked example: 4000 pass yds, 28 pass TD, 10 INT,
-        # 500 rush yds, 7 rush TD -> 344.0 points.
+        # 500 rush yds, 7 rush TD -> 344.0 points. Documents where the
+        # reference_pts_ppr=344.0 literal above comes from.
         proj = make_proj(pass_yds=4000.0, pass_tds=28.0, pass_int=10.0, rush_yds=500.0, rush_tds=7.0)
-        assert compute_reference_ppr(proj) == 344.0
+        assert score_projection(proj, PPR) == 344.0
 
 
 class TestRunValidation:

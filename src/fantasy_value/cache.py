@@ -82,7 +82,7 @@ class RawCache:
         if not entries:
             return None
         newest = max(entries, key=lambda e: e.fetched_at)
-        if max_age is not None and newest.age > max_age:
+        if max_age is not None and (self._clock() - newest.fetched_at) > max_age:
             return None
         return newest
 
