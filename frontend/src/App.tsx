@@ -4,16 +4,17 @@ import boardStyles from './components/board/Board.module.css'
 import poolStyles from './components/pool/Pool.module.css'
 import railStyles from './components/rail/Rail.module.css'
 import { DraftRoom } from './components/DraftRoom'
+import { BoardGrid } from './components/board/BoardGrid'
 import { BoardHeader, type BoardMode } from './components/board/BoardHeader'
+import { BoardList } from './components/board/BoardList'
 import { PoolHeader } from './components/pool/PoolHeader'
 import { PoolTable } from './components/pool/PoolTable'
 import { BoardControl } from './components/rail/BoardControl'
 import { NoticeStrip } from './components/rail/NoticeStrip'
 import { RailHeader } from './components/rail/RailHeader'
 import { useAppState } from './hooks/useAppState'
+import { useDraftBoard } from './hooks/useDraftBoard'
 import { usePlayerPool } from './hooks/usePlayerPool'
-import { clockState } from './lib/draft/view'
-import { draftShape } from './lib/draft/snake'
 import { loadSnapshot, SnapshotError } from './lib/projections/load'
 import type { PlayerProjection, Snapshot } from './lib/projections/types'
 import type { PresetName } from './lib/scoring/presets'
@@ -98,13 +99,9 @@ function App() {
     [players],
   )
 
-  const shape = useMemo(() => draftShape(state.league), [state.league])
-  const clock = useMemo(
-    () => clockState({ picks: state.draftedIds, shape, mySlot: state.mySlot, playersById: pool.boardPlayersById }),
-    [state.draftedIds, shape, state.mySlot, pool.boardPlayersById],
-  )
+  const board = useDraftBoard(state.draftedIds, state.league, state.mySlot, pool.boardPlayersById)
 
-  const leagueLine = `${state.league.teams} teams · snake · ${PRESET_LABELS[state.scoring.preset]} · ${shape.rounds} rounds`
+  const leagueLine = `${state.league.teams} teams · snake · ${PRESET_LABELS[state.scoring.preset]} · ${board.shape.rounds} rounds`
 
   if (loadState.status === 'loading') {
     return <p className={styles.centered}>Loading projections…</p>
@@ -145,8 +142,14 @@ function App() {
       }
       board={
         <section className={boardStyles.pane}>
-          <BoardHeader mode={boardMode} onModeChange={setBoardMode} clockLabel={clock.label} />
-          <div className={boardStyles.body}>The Board arrives in Sitting 3</div>
+          <BoardHeader mode={boardMode} onModeChange={setBoardMode} clockLabel={board.clock.label} />
+          <div className={boardStyles.body}>
+            {boardMode === 'grid' ? (
+              <BoardGrid teamColumns={board.teamColumns} gridRows={board.gridRows} />
+            ) : (
+              <BoardList listRounds={board.listRounds} />
+            )}
+          </div>
         </section>
       }
       pool={

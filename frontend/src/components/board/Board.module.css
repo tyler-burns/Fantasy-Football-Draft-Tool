@@ -86,12 +86,263 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+}
+
+/* ---- Grid mode ---- */
+
+.gridWrap {
+  min-width: max-content;
+}
+
+.gridHeaderRow,
+.gridRow {
+  display: grid;
+}
+
+.gridHeaderRow {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--panel);
+  border-bottom: 1px solid var(--accent);
+}
+
+.gridCorner {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: var(--panel);
+  border-right: 1px solid var(--accent);
+  padding: 6px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
+.gridTeamHeader {
+  padding: 5px 9px;
+  border-right: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gridTeamSlot {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--ink-dim);
+}
+
+.gridTeamName {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gridTeamName[data-mine='true'] {
+  color: var(--accent-label);
+}
+
+.gridRow {
+  border-bottom: 1px solid var(--panel);
+}
+
+.gridRoundCell {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--panel);
+  border-right: 1px solid var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--ink-dim);
+}
+
+.gridCell {
+  border-right: 1px solid var(--panel);
+  border-left: 3px solid transparent;
+  background: transparent;
+  padding: 5px 8px;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+}
+.gridCell[data-pos] {
+  border-left-color: var(--pos);
+  background: var(--pos-tint);
+}
+.gridCell[data-state='clock'] {
+  border-left-color: var(--accent);
+  background: var(--panel);
+}
+.gridCell[data-state='mine'] {
+  background: var(--panel);
+}
+
+.gridCellMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.gridCellNum {
+  color: var(--ink-dim);
+}
+.gridCell[data-state='clock'] .gridCellNum {
+  color: var(--accent-label);
+}
+.gridCellPos {
+  font-weight: 600;
+  color: var(--pos);
+}
+
+.gridCellName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+.gridCell[data-pos] .gridCellName {
+  color: var(--ink);
+}
+.gridCell[data-state='clock'] .gridCellName {
+  color: var(--accent-label);
+}
+
+.gridCellSub {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+
+/* ---- List mode ---- */
+
+.listPad {
+  padding-bottom: 24px;
+}
+
+.listRoundHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--panel);
+  border-top: 1px solid var(--accent);
+  border-bottom: 1px solid var(--accent);
+  padding: 5px 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.listRoundLabel {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.listRoundMeta {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.listRow {
+  display: grid;
+  grid-template-columns: 74px 148px 46px minmax(0, 1fr) 130px;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 16px;
+  border-bottom: 1px solid var(--panel);
+  border-left: 3px solid transparent;
+  background: transparent;
+}
+.listRow[data-pos] {
+  border-left-color: var(--pos);
+  background: var(--pos-tint-list);
+}
+.listRow[data-state='clock'] {
+  border-left-color: var(--accent);
+  background: var(--panel);
+}
+.listRow[data-state='mine'] {
+  background: var(--panel);
+}
+
+.listNum {
   font-family: var(--font-heading);
   font-size: 12px;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.listRow[data-state='clock'] .listNum {
+  color: var(--accent-label);
+}
+
+.listTeamName {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.listTeamName[data-mine='true'] {
+  color: var(--accent-label);
+}
+
+.listPos {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--pos);
+}
+
+.listName {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.listRow[data-pos] .listName {
+  color: var(--ink);
+}
+.listRow[data-state='clock'] .listName {
+  color: var(--accent-label);
+}
+
+.listMeta {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  text-align: right;
 }
