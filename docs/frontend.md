@@ -110,20 +110,27 @@ shown in the pool and detail panel is *not* `lib/valuation/vona.ts`'s
 Section-17 port (that stays untouched -- it's still what the golden fixture
 checks, via `PlayerValuation.vona` on a `ValuationBoard`). The Python
 version measures the gap to the very next-ranked player at a position, which
-doesn't account for how many picks actually separate the caller from their
-own next turn. The UI's version does: for each position, every available
-player whose ADP falls before `lib/draft/snake.ts`'s `nextMyPickIndex` (the
-caller's next owned pick, strictly after the current one -- deliberately not
-`clockIndex` itself, even mid-turn) is assumed gone by then; the "boundary"
-is the best-by-points player past that count, i.e. the best player expected
-to still be on the board at the caller's next turn. VONA is a player's
+doesn't account for how many picks actually separate a team from their own
+next turn. The UI's version does, and does it for **whoever is currently on
+the clock**, not just the user's own slot -- so the column reads as "was
+this a good pick for them" through every team's turn, useful for judging
+opponents' picks as they happen, not only planning your own.
+`usePlayerPool.ts` derives the current picker's slot straight from
+`clockIndex` (`slotForPick(clockIndex, teams) + 1`) and feeds it to
+`lib/draft/snake.ts`'s `nextPickIndexForSlot` -- the current picker's next
+owned pick, strictly after the current one (deliberately not `clockIndex`
+itself, even mid-turn); it only reduces to "my own next pick" as a special
+case when it happens to be the user's turn. For each position, every
+available player whose ADP falls before that pick is assumed gone by then;
+the "boundary" is the best-by-points player past that count, i.e. the best
+player expected to still be on the board at that turn. VONA is a player's
 points minus the boundary's -- large and positive for someone who'd
-otherwise be gone before the caller's next pick, at or below zero for
-someone expected to still be there regardless (including, sometimes usefully,
-negative -- "something better will likely still be around too, no rush").
-Requires `mySlot`/`clockIndex`, which the Python engine has no concept of,
-so this can never be a port; it's `usePlayerPool.ts`'s job to compute it
-fresh from the current draft state on every recompute, same as `Value`.
+otherwise be gone before that pick, at or below zero for someone expected to
+still be there regardless (including, sometimes usefully, negative --
+"something better will likely still be around too, no rush"). Requires
+`clockIndex`/league shape, which the Python engine has no concept of, so
+this can never be a port; it's `usePlayerPool.ts`'s job to compute it fresh
+from the current draft state on every recompute, same as `Value`.
 
 **Player detail panel** (`components/PlayerDetailPanel.tsx`): a Section-19.5
 requirement ("show the arithmetic, not just the total") the handoff's own

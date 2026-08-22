@@ -90,15 +90,18 @@ export function teamLabel(slot: number, mySlot: number): string {
   return slot === mySlot - 1 ? 'My Team' : `Team ${slot + 1}`
 }
 
-/** The next overall pick index (0-based) owned by `mySlot`, strictly after
- * `clockIndex` -- never `clockIndex` itself, even if it's currently my pick.
- * Answers "if I pass on a player right now, how long until I get another
- * shot," which is a different question than "is it my turn." Null once no
- * such pick remains (mySlot has already made every pick it's going to, or
- * `totalPicksCount` is 0). */
-export function nextMyPickIndex(clockIndex: number, teams: number, mySlot: number, totalPicksCount: number): number | null {
+/** The next overall pick index (0-based) owned by `slot` (1-based, same
+ * convention as `mySlot` elsewhere in this module -- despite the name, this
+ * is deliberately generic: callers pass whichever team's next pick they
+ * want, not only "my own"), strictly after `clockIndex` -- never
+ * `clockIndex` itself, even if it's currently that slot's pick. Answers "if
+ * this team passes on a player right now, how long until they get another
+ * shot," which is a different question than "is it their turn." Null once
+ * no such pick remains (the slot has already made every pick it's going to,
+ * or `totalPicksCount` is 0). */
+export function nextPickIndexForSlot(clockIndex: number, teams: number, slot: number, totalPicksCount: number): number | null {
   for (let i = clockIndex + 1; i < totalPicksCount; i++) {
-    if (isMyPick(i, teams, mySlot)) return i
+    if (isMyPick(i, teams, slot)) return i
   }
   return null
 }

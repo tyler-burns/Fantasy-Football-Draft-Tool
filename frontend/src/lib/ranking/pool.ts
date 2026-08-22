@@ -72,17 +72,21 @@ export function computeDraftValue(adp: number | null, clockIndex: number): numbe
  * display purposes (that Python-ported version stays untouched; it's still
  * what the golden fixture checks). Section 17's plain "gap to the very next
  * ranked player at the position" doesn't account for how many picks actually
- * separate the caller from their own next turn; this does. For each
- * position, every available player whose ADP falls before `nextPickIndex`
- * is assumed gone by then (no ADP -> assumed NOT going soon, the
- * conservative default); the "boundary" is the best-by-points player past
- * that count, i.e. the best player expected to still be on the board. VONA
- * is this player's points minus the boundary's -- positive and large for a
- * player who'd otherwise be gone before the caller's next pick, at or below
- * zero for one who's expected to still be there regardless. Null with no
- * future pick to compare against (nextPickIndex is null) or once a
- * position's boundary runs past the last available player (everyone left is
- * expected to be gone -- no reference point). */
+ * separate a pick's owner from their own next turn; this does. `nextPickIndex`
+ * is deliberately whoever's relevant to the caller, not always "mine" --
+ * usePlayerPool.ts passes the pick belonging to whoever is CURRENTLY on the
+ * clock, so the column reads as "was this pick good for them" through every
+ * team's turn, not only the user's own. For each position, every available
+ * player whose ADP falls before `nextPickIndex` is assumed gone by then (no
+ * ADP -> assumed NOT going soon, the conservative default); the "boundary"
+ * is the best-by-points player past that count, i.e. the best player
+ * expected to still be on the board. VONA is this player's points minus the
+ * boundary's -- positive and large for a player who'd otherwise be gone
+ * before that next pick, at or below zero for one who's expected to still
+ * be there regardless. Null with no future pick to compare against
+ * (nextPickIndex is null) or once a position's boundary runs past the last
+ * available player (everyone left is expected to be gone -- no reference
+ * point). */
 export function computeDynamicVona(
   players: readonly PlayerValuation[],
   projectionsById: ReadonlyMap<string, PlayerProjection>,

@@ -99,7 +99,6 @@ function App() {
     players,
     state.scoring.config,
     state.league,
-    state.mySlot,
     draftedSet,
     clockIndex,
     filters,

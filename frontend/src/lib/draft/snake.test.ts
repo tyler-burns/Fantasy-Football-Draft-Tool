@@ -4,7 +4,7 @@ import {
   draftShape,
   isMyPick,
   myPickIndexes,
-  nextMyPickIndex,
+  nextPickIndexForSlot,
   overallLabel,
   pickLabel,
   roundForPick,
@@ -116,30 +116,37 @@ describe('isMyPick / myPickIndexes', () => {
   })
 })
 
-describe('nextMyPickIndex', () => {
-  it('skips the current pick even if it is mine, and finds the next one', () => {
-    // 12 teams, mySlot=1 (slot 0): picks 0, 23, 24, 47, ...
-    expect(nextMyPickIndex(0, 12, 1, 180)).toBe(23)
+describe('nextPickIndexForSlot', () => {
+  it('skips the current pick even if it belongs to that slot, and finds the next one', () => {
+    // 12 teams, slot=1 (0-based slot 0): picks 0, 23, 24, 47, ...
+    expect(nextPickIndexForSlot(0, 12, 1, 180)).toBe(23)
   })
 
-  it('finds the very next mySlot pick when it is not currently my turn', () => {
-    expect(nextMyPickIndex(5, 12, 1, 180)).toBe(23)
-    expect(nextMyPickIndex(20, 12, 1, 180)).toBe(23)
+  it("finds the very next pick for a slot other than whoever's currently on the clock", () => {
+    expect(nextPickIndexForSlot(5, 12, 1, 180)).toBe(23)
+    expect(nextPickIndexForSlot(20, 12, 1, 180)).toBe(23)
   })
 
-  it('is null once mySlot has no remaining pick', () => {
-    // mySlot=1's last pick in a 180-pick, 12-team draft is index 168.
-    expect(nextMyPickIndex(168, 12, 1, 180)).toBe(null)
-    expect(nextMyPickIndex(179, 12, 1, 180)).toBe(null)
+  it('works for any slot, not just a caller-designated "my" one', () => {
+    // slot=5 (0-based slot 4): first pick index 4, snake-reversed second
+    // pick index 19 (round 1 -> 12*2-1-4 = 19).
+    expect(nextPickIndexForSlot(4, 12, 5, 180)).toBe(19)
+    expect(nextPickIndexForSlot(10, 12, 5, 180)).toBe(19)
+  })
+
+  it('is null once the slot has no remaining pick', () => {
+    // slot=1's last pick in a 180-pick, 12-team draft is index 168.
+    expect(nextPickIndexForSlot(168, 12, 1, 180)).toBe(null)
+    expect(nextPickIndexForSlot(179, 12, 1, 180)).toBe(null)
   })
 
   it('agrees with isMyPick/myPickIndexes for an exhaustive scan', () => {
     const totalPicksCount = 180
-    for (const mySlot of [1, 4, 12]) {
-      const owned = myPickIndexes(totalPicksCount, 12, mySlot)
+    for (const slot of [1, 4, 12]) {
+      const owned = myPickIndexes(totalPicksCount, 12, slot)
       for (let clockIndex = -1; clockIndex < totalPicksCount; clockIndex++) {
         const expected = owned.find((i) => i > clockIndex) ?? null
-        expect(nextMyPickIndex(clockIndex, 12, mySlot, totalPicksCount)).toBe(expected)
+        expect(nextPickIndexForSlot(clockIndex, 12, slot, totalPicksCount)).toBe(expected)
       }
     }
   })

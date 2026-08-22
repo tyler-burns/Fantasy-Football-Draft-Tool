@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { draftShape, nextMyPickIndex, totalPicks } from '../lib/draft/snake'
+import { draftShape, nextPickIndexForSlot, slotForPick, totalPicks } from '../lib/draft/snake'
 import type { BoardPlayer } from '../lib/draft/view'
 import type { PlayerProjection } from '../lib/projections/types'
 import { buildPoolPlayers, computeDynamicVona, computePositionRanks, type PoolPlayer } from '../lib/ranking/pool'
@@ -19,7 +19,6 @@ export function usePlayerPool(
   players: readonly PlayerProjection[],
   scoringConfig: ScoringConfig,
   league: LeagueConfig,
-  mySlot: number,
   draftedSet: ReadonlySet<string>,
   clockIndex: number,
   filters: RowFilters,
@@ -44,12 +43,15 @@ export function usePlayerPool(
 
   const positionRanks = useMemo(() => computePositionRanks(fullBoard), [fullBoard])
 
-  // The pick VONA is measured against: the caller's next turn, not the
-  // current one -- see lib/draft/snake.ts's nextMyPickIndex and
+  // The pick VONA is measured against: not "my" next turn specifically, but
+  // the next turn of whoever is CURRENTLY on the clock -- so the column
+  // reads as "was this a good pick for them" for every team's turn, not
+  // just mine. See lib/draft/snake.ts's nextPickIndexForSlot and
   // lib/ranking/pool.ts's computeDynamicVona.
+  const currentPickerSlot = useMemo(() => slotForPick(clockIndex, league.teams) + 1, [clockIndex, league.teams])
   const nextPick = useMemo(
-    () => nextMyPickIndex(clockIndex, league.teams, mySlot, totalPicks(draftShape(league))),
-    [clockIndex, league, mySlot],
+    () => nextPickIndexForSlot(clockIndex, league.teams, currentPickerSlot, totalPicks(draftShape(league))),
+    [clockIndex, league, currentPickerSlot],
   )
 
   const availableDynamicVona = useMemo(
