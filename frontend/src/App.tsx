@@ -23,6 +23,7 @@ import { ScoringSection } from './components/rail/ScoringSection'
 import { useAppState } from './hooks/useAppState'
 import { useDraftBoard } from './hooks/useDraftBoard'
 import { usePlayerPool } from './hooks/usePlayerPool'
+import { makePlaceholderPickId, type PlaceholderPosition } from './lib/draft/placeholder'
 import { fillRoster, rosterSlotCounts } from './lib/draft/roster'
 import { myPickIndexes } from './lib/draft/snake'
 import { loadSnapshot, SnapshotError } from './lib/projections/load'
@@ -142,6 +143,10 @@ function App() {
     dispatch({ type: 'setTeams', teams })
   }
 
+  function handleLogPlaceholder(position: PlaceholderPosition) {
+    dispatch({ type: 'draft', playerId: makePlaceholderPickId(position, state.draftedIds.length) })
+  }
+
   const selectedPlayer = selectedPlayerId ? pool.poolPlayersById.get(selectedPlayerId) : undefined
 
   if (loadState.status === 'loading') {
@@ -195,9 +200,11 @@ function App() {
               <BoardControl
                 canUndo={state.draftedIds.length > 0}
                 canReset={state.draftedIds.length > 0}
+                canLogPlaceholder={!board.clock.complete}
                 onUndo={() => dispatch({ type: 'undoLastPick' })}
                 onResetDraft={() => dispatch({ type: 'resetDraft' })}
                 onResetAll={() => dispatch({ type: 'resetAll' })}
+                onLogPlaceholder={handleLogPlaceholder}
               />
               <PositionKey />
             </div>

@@ -38,14 +38,14 @@ export function BoardGrid({ teamColumns, gridRows }: BoardGridProps) {
                 {cell.player && (
                   <span className={styles.gridCellPos}>
                     {cell.player.position}
-                    {cell.player.position_rank}
+                    {!cell.player.isPlaceholder && cell.player.position_rank}
                   </span>
                 )}
               </div>
               <span className={styles.gridCellName}>
                 {cell.player ? (cell.player.name ?? '—') : cell.onClock ? 'On the clock' : ''}
               </span>
-              {cell.player && (
+              {cell.player && !cell.player.isPlaceholder && (
                 <span className={styles.gridCellSub}>
                   {cell.player.team ?? ''} · {formatNumber(cell.player.points)}
                 </span>

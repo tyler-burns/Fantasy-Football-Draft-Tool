@@ -76,6 +76,14 @@
   color: var(--ink-dim);
 }
 
+.ghostButton[data-pos] {
+  color: var(--pos);
+}
+.ghostButton[data-pos]:hover {
+  border-color: var(--pos);
+  color: var(--pos);
+}
+
 .buttonRow {
   display: flex;
   gap: 7px;

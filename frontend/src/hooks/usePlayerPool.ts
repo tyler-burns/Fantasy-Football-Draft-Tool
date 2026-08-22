@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { PLACEHOLDER_NAME, parsePlaceholderPickId } from '../lib/draft/placeholder'
 import { draftShape, nextPickIndexForSlot, slotForPick, totalPicks } from '../lib/draft/snake'
 import type { BoardPlayer } from '../lib/draft/view'
 import type { PlayerProjection } from '../lib/projections/types'
@@ -111,10 +112,28 @@ export function usePlayerPool(
         position_rank: positionRanks.get(pv.player_id) ?? 0,
         points: pv.points,
         adp: projection?.adp ?? null,
+        isPlaceholder: false,
+      })
+    }
+    // K/DST placeholders (lib/draft/placeholder.ts) never enter `scored` --
+    // there's no real projection behind them -- so they need a synthetic
+    // entry here to render as anything but a blank Board cell.
+    for (const id of draftedSet) {
+      const position = parsePlaceholderPickId(id)
+      if (!position) continue
+      map.set(id, {
+        player_id: id,
+        name: PLACEHOLDER_NAME[position],
+        team: null,
+        position,
+        position_rank: 0,
+        points: 0,
+        adp: null,
+        isPlaceholder: true,
       })
     }
     return map
-  }, [fullBoard, positionRanks, projectionsById])
+  }, [fullBoard, positionRanks, projectionsById, draftedSet])
 
   return { fullBoard, rows, positionCounts, boardPlayersById, poolPlayersById, projectionsById }
 }

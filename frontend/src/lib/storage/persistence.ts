@@ -6,6 +6,7 @@
 // pattern board.ts already uses for replacementFn.
 
 import type { ScoringState } from '../../hooks/useAppState'
+import { parsePlaceholderPickId } from '../draft/placeholder'
 import { PRESETS, type PresetName } from '../scoring/presets'
 import { validateScoringConfig, type ScoringConfig } from '../scoring/types'
 import { DEFAULT_LEAGUE, makeLeagueConfig, validateLeagueConfig, type LeagueConfig } from '../valuation/league'
@@ -212,11 +213,14 @@ export function loadDraft(storage: Storage = window.localStorage): LoadedDraft {
  * harmlessly (board.ts's availablePlayers just filters), so nothing
  * crashes -- but the drafted panel joins ids against the pool, so stale
  * ones are pruned here with a one-line notice rather than rendering a
- * ghost row or silently keeping a phantom in the pick count. */
+ * ghost row or silently keeping a phantom in the pick count. A K/DST
+ * placeholder id (lib/draft/placeholder.ts) is never in `validIds` --
+ * there's no projection behind it by design -- so it's exempted here
+ * rather than getting pruned as "stale" on every single load. */
 export function pruneStaleDraftedIds(
   draftedIds: readonly string[],
   validIds: ReadonlySet<string>,
 ): { kept: string[]; staleCount: number } {
-  const kept = draftedIds.filter((id) => validIds.has(id))
+  const kept = draftedIds.filter((id) => validIds.has(id) || parsePlaceholderPickId(id) !== null)
   return { kept, staleCount: draftedIds.length - kept.length }
 }

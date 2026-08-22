@@ -227,4 +227,10 @@ describe('pruneStaleDraftedIds', () => {
     const result = pruneStaleDraftedIds(['rb1'], new Set(['rb1']))
     expect(result.staleCount).toBe(0)
   })
+
+  it('K/DST placeholder ids are never pruned, even though they are never in validIds', () => {
+    const result = pruneStaleDraftedIds(['rb1', 'placeholder:K:1', 'placeholder:DST:2'], new Set(['rb1']))
+    expect(result.kept).toEqual(['rb1', 'placeholder:K:1', 'placeholder:DST:2'])
+    expect(result.staleCount).toBe(0)
+  })
 })

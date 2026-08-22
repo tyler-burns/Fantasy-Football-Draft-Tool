@@ -97,6 +97,25 @@ else the first empty eligible FLEX slot, else the first empty bench slot. A
 pick that fits nowhere (every matching slot already full) simply doesn't
 appear on the roster card — it's still on the Board.
 
+**K/DST placeholder picks** (`lib/draft/placeholder.ts`): the projection
+source has no per-player kicker/defense data at all (see the table above),
+so K/DST can never be real, searchable, clickable pool rows. A real draft
+being tracked here still takes one at some point for every team, though, and
+every derivation downstream of `draftedIds` (snake order, My Roster,
+pick-aware VONA) depends on the overall pick count staying accurate --
+skipping those picks entirely would desync every subsequent pick's derived
+team ownership. The rail's Board Control section has "Log K taken" / "Log
+DST taken" buttons that append a placeholder id (`placeholder:K:<pickIndex>`
+-- unique per pick, since every team eventually takes one and the draft
+reducer dedupes by id) instead of a real `player_id`. `usePlayerPool.ts`
+synthesizes a minimal `BoardPlayer` for any such id found in `draftedSet`
+(name "Kicker"/"Defense/ST", `isPlaceholder: true`, no points/ADP/rank) so
+the Board renders a labeled, position-tinted cell instead of a blank one or
+a fake "On the clock." These ids never enter `scored` or the Player pool --
+exactly the "fine with them not being included" the feature was scoped
+to -- and `pruneStaleDraftedIds` exempts them from its normal
+not-in-the-projections-file staleness check, since by design they never are.
+
 **Player pool Value column**: superseded the earlier ranking-mode abstraction
 (`lib/ranking/modes.ts`, deleted) with the handoff's own, simpler, live-draft
 semantics in `lib/ranking/pool.ts`: `Value = ADP − (current overall pick)`.

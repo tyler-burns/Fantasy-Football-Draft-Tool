@@ -4,7 +4,7 @@ import type { BoardPlayer } from './view'
 import { fillRoster, rosterSlotCounts, slotKeyForPosition, ROSTER_SLOT_KEYS } from './roster'
 
 function player(id: string, position: string): BoardPlayer {
-  return { player_id: id, name: id, team: 'BUF', position, position_rank: 1, points: 100, adp: 1 }
+  return { player_id: id, name: id, team: 'BUF', position, position_rank: 1, points: 100, adp: 1, isPlaceholder: false }
 }
 
 const TEAMS = 12
@@ -125,6 +125,22 @@ describe('fillRoster', () => {
     const dstEntry = entries.find((e) => e.key === 'DST')
     expect(kEntry?.player).toBeNull()
     expect(dstEntry?.player).toBeNull()
+  })
+
+  it('a placeholder K/DST pick fills its own slot, not FLEX or bench', () => {
+    const kIndex = myPickIndex(0)
+    const dstIndex = myPickIndex(1)
+    const picks: string[] = []
+    picks[kIndex] = 'placeholder:K:99'
+    picks[dstIndex] = 'placeholder:DST:100'
+    const playersById = new Map([
+      ['placeholder:K:99', { ...player('placeholder:K:99', 'K'), isPlaceholder: true }],
+      ['placeholder:DST:100', { ...player('placeholder:DST:100', 'DST'), isPlaceholder: true }],
+    ])
+    const entries = fillRoster({ picks, teams: TEAMS, mySlot: MY_SLOT, counts, flexPositions: FLEX_RB_WR_TE, playersById })
+    expect(entries.find((e) => e.key === 'K')?.player?.isPlaceholder).toBe(true)
+    expect(entries.find((e) => e.key === 'DST')?.player?.isPlaceholder).toBe(true)
+    expect(entries.filter((e) => e.key === 'FLEX').every((e) => e.player === null)).toBe(true)
   })
 
   it('a DEF player fills the DST slot', () => {

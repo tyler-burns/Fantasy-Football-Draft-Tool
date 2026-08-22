@@ -16,6 +16,11 @@ export interface BoardPlayer {
   readonly position_rank: number
   readonly points: number
   readonly adp: number | null
+  // True for a K/DST logged via lib/draft/placeholder.ts -- there's no real
+  // per-player projection behind it, so cell rendering skips the fields
+  // that would otherwise look like real (but meaningless: rank 0, 0 points)
+  // data.
+  readonly isPlaceholder: boolean
 }
 
 export interface BoardCell {

@@ -27,13 +27,13 @@ export function BoardList({ listRounds }: BoardListProps) {
                 {row.teamName}
               </span>
               <span className={styles.listPos}>
-                {row.player ? `${row.player.position}${row.player.position_rank}` : ''}
+                {row.player ? `${row.player.position}${row.player.isPlaceholder ? '' : row.player.position_rank}` : ''}
               </span>
               <span className={styles.listName}>
                 {row.player ? (row.player.name ?? '—') : row.onClock ? 'On the clock' : '—'}
               </span>
               <span className={styles.listMeta}>
-                {row.player ? `${row.player.team ?? ''} · ADP ${formatNumber(row.player.adp, 0)}` : ''}
+                {row.player && !row.player.isPlaceholder ? `${row.player.team ?? ''} · ADP ${formatNumber(row.player.adp, 0)}` : ''}
               </span>
             </div>
           ))}
