@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { PPR } from '../scoring/presets'
+import { HALF_PPR, PPR } from '../scoring/presets'
 import { DEFAULT_LEAGUE, FLEX_RB_WR } from '../valuation/league'
 import {
   CONFIG_KEY,
   DRAFT_KEY,
+  INITIAL_LEAGUE,
   loadConfig,
   loadDraft,
   pruneStaleDraftedIds,
@@ -49,23 +50,24 @@ class ThrowingStorage implements Storage {
 }
 
 describe('config round-trip', () => {
-  it('round-trips scoring and league, including flex_positions Set<->array', () => {
+  it('round-trips scoring, league, and mySlot, including flex_positions Set<->array', () => {
     const storage = new FakeStorage()
     const scoring = { preset: 'custom' as const, config: { ...PPR, pass_td_points: 5.0 } }
     const league = { ...DEFAULT_LEAGUE, teams: 10, flex_positions: FLEX_RB_WR }
 
-    saveConfig(scoring, league, storage)
+    saveConfig(scoring, league, 7, storage)
     const loaded = loadConfig(storage)
 
     expect(loaded.warning).toBeNull()
     expect(loaded.scoring).toEqual(scoring)
     expect(loaded.league.teams).toBe(10)
     expect(loaded.league.flex_positions).toEqual(FLEX_RB_WR)
+    expect(loaded.mySlot).toBe(7)
   })
 
   it('flex_positions is stored as a real array, not "{}" (the Set JSON.stringify trap)', () => {
     const storage = new FakeStorage()
-    saveConfig({ preset: 'ppr', config: PPR }, DEFAULT_LEAGUE, storage)
+    saveConfig({ preset: 'ppr', config: PPR }, DEFAULT_LEAGUE, 1, storage)
     const raw = JSON.parse(storage.getItem(CONFIG_KEY)!)
     expect(Array.isArray(raw.league.flex_positions)).toBe(true)
     expect(raw.league.flex_positions.length).toBeGreaterThan(0)
@@ -74,8 +76,9 @@ describe('config round-trip', () => {
   it('missing key returns defaults with no warning (first visit is normal)', () => {
     const loaded = loadConfig(new FakeStorage())
     expect(loaded.warning).toBeNull()
-    expect(loaded.scoring.config).toEqual(PPR)
-    expect(loaded.league).toEqual(DEFAULT_LEAGUE)
+    expect(loaded.scoring.config).toEqual(HALF_PPR)
+    expect(loaded.league).toEqual(INITIAL_LEAGUE)
+    expect(loaded.mySlot).toBe(1)
   })
 
   it('corrupt JSON falls back to defaults with a warning', () => {
@@ -83,7 +86,7 @@ describe('config round-trip', () => {
     storage.setItem(CONFIG_KEY, '{{{not json')
     const loaded = loadConfig(storage)
     expect(loaded.warning).not.toBeNull()
-    expect(loaded.scoring.config).toEqual(PPR)
+    expect(loaded.scoring.config).toEqual(HALF_PPR)
   })
 
   it('wrong version falls back to defaults with a warning', () => {
@@ -91,7 +94,7 @@ describe('config round-trip', () => {
     storage.setItem(CONFIG_KEY, JSON.stringify({ version: 999, scoring: {}, league: {} }))
     const loaded = loadConfig(storage)
     expect(loaded.warning).not.toBeNull()
-    expect(loaded.league).toEqual(DEFAULT_LEAGUE)
+    expect(loaded.league).toEqual(INITIAL_LEAGUE)
   })
 
   it('invalid scoring falls back to defaults for scoring only, league survives', () => {
@@ -105,7 +108,7 @@ describe('config round-trip', () => {
       }),
     )
     const loaded = loadConfig(storage)
-    expect(loaded.scoring.config).toEqual(PPR) // reset
+    expect(loaded.scoring.config).toEqual(HALF_PPR) // reset
     expect(loaded.league.teams).toBe(8) // survives
     expect(loaded.warning).toContain('scoring')
   })
@@ -121,13 +124,58 @@ describe('config round-trip', () => {
       }),
     )
     const loaded = loadConfig(storage)
-    expect(loaded.league).toEqual(DEFAULT_LEAGUE) // reset
+    expect(loaded.league).toEqual(INITIAL_LEAGUE) // reset
     expect(loaded.scoring.config).toEqual(PPR)
     expect(loaded.warning).toContain('league')
   })
 
   it('a throwing setItem does not propagate', () => {
-    expect(() => saveConfig({ preset: 'ppr', config: PPR }, DEFAULT_LEAGUE, new ThrowingStorage())).not.toThrow()
+    expect(() => saveConfig({ preset: 'ppr', config: PPR }, DEFAULT_LEAGUE, 1, new ThrowingStorage())).not.toThrow()
+  })
+
+  it('a payload from before mySlot existed loads with the default and no warning', () => {
+    const storage = new FakeStorage()
+    storage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({
+        version: 1,
+        scoring: { preset: 'ppr', config: PPR },
+        league: { ...DEFAULT_LEAGUE, flex_positions: [...DEFAULT_LEAGUE.flex_positions] },
+        // no mySlot field
+      }),
+    )
+    const loaded = loadConfig(storage)
+    expect(loaded.mySlot).toBe(1)
+    expect(loaded.warning).toBeNull()
+  })
+
+  it('mySlot is clamped to the loaded league.teams', () => {
+    const storage = new FakeStorage()
+    storage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({
+        version: 1,
+        scoring: { preset: 'ppr', config: PPR },
+        league: { ...DEFAULT_LEAGUE, teams: 8, flex_positions: [...DEFAULT_LEAGUE.flex_positions] },
+        mySlot: 12,
+      }),
+    )
+    const loaded = loadConfig(storage)
+    expect(loaded.mySlot).toBe(8)
+  })
+
+  it('a non-integer or sub-1 mySlot falls back to the default', () => {
+    const storage = new FakeStorage()
+    storage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({
+        version: 1,
+        scoring: { preset: 'ppr', config: PPR },
+        league: { ...DEFAULT_LEAGUE, flex_positions: [...DEFAULT_LEAGUE.flex_positions] },
+        mySlot: 0,
+      }),
+    )
+    expect(loadConfig(storage).mySlot).toBe(1)
   })
 })
 

@@ -31,6 +31,7 @@ interface PersistedConfig {
   version: number
   scoring: { preset: PresetName | 'custom'; config: ScoringConfig }
   league: PersistedLeague
+  mySlot?: number
 }
 
 interface PersistedDraft {
@@ -41,6 +42,7 @@ interface PersistedDraft {
 export interface LoadedConfig {
   scoring: ScoringState
   league: LeagueConfig
+  mySlot: number
   warning: string | null
 }
 
@@ -49,7 +51,18 @@ export interface LoadedDraft {
   warning: string | null
 }
 
-const DEFAULT_SCORING: ScoringState = { preset: 'ppr', config: PRESETS.ppr }
+// Design-handoff evidence (see docs/frontend.md): the handoff's sample
+// export matches this player's exact Half-PPR score computed from real
+// stat lines, confirming the tool's actual league runs Half PPR.
+const DEFAULT_SCORING: ScoringState = { preset: 'half_ppr', config: PRESETS.half_ppr }
+const DEFAULT_MY_SLOT = 1
+
+// DEFAULT_LEAGUE (valuation/league.ts) mirrors the Python spec's Section 14
+// default verbatim and must stay untouched so the engine and its golden
+// cross-language fixture stay in sync. The design handoff's own roster
+// defaults carry te_slots: 0 -- a real league setting, not a spec default --
+// so it's layered on as a UI-level initial value here instead.
+export const INITIAL_LEAGUE: LeagueConfig = { ...DEFAULT_LEAGUE, te_slots: 0 }
 
 function serializeLeague(league: LeagueConfig): PersistedLeague {
   return {
@@ -66,8 +79,13 @@ function serializeLeague(league: LeagueConfig): PersistedLeague {
   }
 }
 
-export function saveConfig(scoring: ScoringState, league: LeagueConfig, storage: Storage = window.localStorage): void {
-  const payload: PersistedConfig = { version: VERSION, scoring, league: serializeLeague(league) }
+export function saveConfig(
+  scoring: ScoringState,
+  league: LeagueConfig,
+  mySlot: number,
+  storage: Storage = window.localStorage,
+): void {
+  const payload: PersistedConfig = { version: VERSION, scoring, league: serializeLeague(league), mySlot }
   try {
     storage.setItem(CONFIG_KEY, JSON.stringify(payload))
   } catch {
@@ -101,18 +119,28 @@ function isPersistedScoringShape(value: unknown): value is { preset: PresetName 
 export function loadConfig(storage: Storage = window.localStorage): LoadedConfig {
   const raw = storage.getItem(CONFIG_KEY)
   if (raw === null) {
-    return { scoring: DEFAULT_SCORING, league: DEFAULT_LEAGUE, warning: null }
+    return { scoring: DEFAULT_SCORING, league: INITIAL_LEAGUE, mySlot: DEFAULT_MY_SLOT, warning: null }
   }
 
   let parsed: unknown
   try {
     parsed = JSON.parse(raw)
   } catch {
-    return { scoring: DEFAULT_SCORING, league: DEFAULT_LEAGUE, warning: 'Saved settings could not be read and were reset.' }
+    return {
+      scoring: DEFAULT_SCORING,
+      league: INITIAL_LEAGUE,
+      mySlot: DEFAULT_MY_SLOT,
+      warning: 'Saved settings could not be read and were reset.',
+    }
   }
 
   if (typeof parsed !== 'object' || parsed === null || (parsed as { version?: unknown }).version !== VERSION) {
-    return { scoring: DEFAULT_SCORING, league: DEFAULT_LEAGUE, warning: 'Saved settings were an unrecognized version and were reset.' }
+    return {
+      scoring: DEFAULT_SCORING,
+      league: INITIAL_LEAGUE,
+      mySlot: DEFAULT_MY_SLOT,
+      warning: 'Saved settings were an unrecognized version and were reset.',
+    }
   }
 
   const payload = parsed as Partial<PersistedConfig>
@@ -125,7 +153,7 @@ export function loadConfig(storage: Storage = window.localStorage): LoadedConfig
     warnings.push('Saved scoring settings were invalid and were reset.')
   }
 
-  let league = DEFAULT_LEAGUE
+  let league = INITIAL_LEAGUE
   if (isPersistedLeagueShape(payload.league)) {
     const candidate = { ...payload.league, flex_positions: new Set(payload.league.flex_positions) }
     if (validateLeagueConfig(candidate).length === 0) {
@@ -137,7 +165,14 @@ export function loadConfig(storage: Storage = window.localStorage): LoadedConfig
     warnings.push('Saved league settings were invalid and were reset.')
   }
 
-  return { scoring, league, warning: warnings.length > 0 ? warnings.join(' ') : null }
+  // Absent in an old payload (pre-mySlot) -> default, no warning: this
+  // field's addition must never reset an existing user's settings.
+  let mySlot = DEFAULT_MY_SLOT
+  if (typeof payload.mySlot === 'number' && Number.isInteger(payload.mySlot) && payload.mySlot >= 1) {
+    mySlot = Math.min(payload.mySlot, league.teams)
+  }
+
+  return { scoring, league, mySlot, warning: warnings.length > 0 ? warnings.join(' ') : null }
 }
 
 export function saveDraft(draftedIds: readonly string[], storage: Storage = window.localStorage): void {

@@ -1,0 +1,34 @@
+/* Root layout constraints -- verbatim from the design handoff's "Layout
+   constraints (these were bugs; don't reintroduce them)": every pane needs
+   its own min-height:0/min-width:0/overflow:hidden so its inner scroller
+   (not the page) owns scrolling. */
+.root {
+  display: grid;
+  grid-template-columns: 316px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.rail {
+  border-right: 1px solid var(--hairline);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.main {
+  display: grid;
+  grid-template-rows: minmax(0, 1.02fr) minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.centered {
+  padding: 24px;
+}

@@ -1,0 +1,211 @@
+/* "Industry" design system tokens, dark inversion -- see
+   C:\Users\tyler\Documents\FantasyFootballTool\design_handoff_draft_room\.
+   This screen is dark-only (no prefers-color-scheme branch): the design's
+   own --color-text (#1d1f20) becomes the app *ground*, not body text, which
+   is why semantic aliases exist below rather than using the raw Industry
+   names directly in component CSS. */
+
+:root {
+  color-scheme: dark;
+
+  /* Raw Industry tokens, kept greppable against the handoff's own values. */
+  --color-neutral-100: #f5f5f8;
+  --color-neutral-200: #e7e7ea;
+  --color-neutral-300: #d4d4d7;
+  --color-neutral-400: #b7b7ba;
+  --color-neutral-500: #98989b;
+  --color-neutral-600: #7a7a7d;
+  --color-neutral-700: #5d5d60;
+  --color-neutral-800: #424244;
+  --color-neutral-900: #2b2b2d;
+  --color-text: #1d1f20;
+
+  --color-accent-100: #eef6ff;
+  --color-accent-200: #d6ebff;
+  --color-accent-300: #b5d9fd;
+  --color-accent-400: #94bce3;
+  --color-accent-500: #749dc4;
+  --color-accent-600: #597ea3;
+
+  --font-heading: 'Barlow Condensed', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
+
+  /* Semantic aliases -- component CSS uses these, not the raw names above.
+     The raw --color-text is the app *ground* here, which is the one
+     genuine readability trap in inverting a light system: naming it
+     "ink" anywhere would be backwards. */
+  --ground: var(--color-text);
+  --panel: var(--color-neutral-900);
+  --hairline: var(--color-neutral-800);
+  --ink: var(--color-neutral-100);
+  --ink-dim: var(--color-neutral-400);
+  --accent: var(--color-accent-400);
+  --accent-label: var(--color-accent-300);
+
+  /* Position colors -- the one deliberate departure from the system's mono
+     palette (functional, not decorative). Card fills are these blended
+     into the ground at ~11-20% via color-mix(), driven by a single
+     data-pos attribute rather than a class per position. */
+  --pos-qb: #e88fa6;
+  --pos-rb: #79cfa6;
+  --pos-wr: #94bce3;
+  --pos-te: #e3b273;
+  --pos-k: #b3a8e0;
+  --pos-dst: #b7b7ba;
+  --pos-flex: #d4d4d7;
+  --pos-bn: #98989b;
+}
+
+[data-pos] {
+  --pos: var(--color-neutral-400);
+}
+[data-pos='QB'] {
+  --pos: var(--pos-qb);
+}
+[data-pos='RB'] {
+  --pos: var(--pos-rb);
+}
+[data-pos='WR'] {
+  --pos: var(--pos-wr);
+}
+[data-pos='TE'] {
+  --pos: var(--pos-te);
+}
+[data-pos='K'] {
+  --pos: var(--pos-k);
+}
+[data-pos='DST'],
+[data-pos='DEF'] {
+  --pos: var(--pos-dst);
+}
+[data-pos='FLEX'] {
+  --pos: var(--pos-flex);
+}
+[data-pos='BN'] {
+  --pos: var(--pos-bn);
+}
+[data-pos='ALL'] {
+  --pos: var(--accent-label);
+}
+
+[data-pos] {
+  /* Alpha steps approximate the handoff's `color + "1c"/"20"/"26"/"33"`
+     hex-alpha suffixes (11%, 12.5%, 15%, 20%) -- color-mix() is already how
+     the Industry stylesheet itself expresses tints, so this stays in-system
+     rather than hand-precomputing 32 hex constants. */
+  --pos-tint-row: color-mix(in srgb, var(--pos) 11%, transparent);
+  --pos-tint-list: color-mix(in srgb, var(--pos) 12.5%, transparent);
+  --pos-tint: color-mix(in srgb, var(--pos) 15%, transparent);
+  --pos-tint-hover: color-mix(in srgb, var(--pos) 20%, transparent);
+}
+
+/* Base layer, matching the design prototype's own <helmet><style> block. */
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+#root {
+  height: 100%;
+}
+a {
+  color: var(--accent-label);
+}
+a:hover {
+  color: var(--color-accent-200);
+}
+input,
+select,
+button {
+  font-family: inherit;
+  border-radius: 0;
+}
+select option {
+  background: var(--ground);
+  color: var(--ink);
+}
+
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+::selection {
+  background: var(--color-neutral-800);
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ground);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-800);
+  border: 3px solid var(--ground);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Blueprint frame -- global, not a CSS module, since it's a shared
+   design-system primitive used across the rail (see components/Blueprint.tsx,
+   which wraps this + the four required corner marks). */
+.blueprint {
+  position: relative;
+  border: 1px solid var(--hairline);
+  border-radius: 0;
+}
+.blueprint > .corner {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  color: var(--accent);
+}
+.blueprint > .corner::before,
+.blueprint > .corner::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+.blueprint > .corner::before {
+  left: 5px;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+.blueprint > .corner::after {
+  top: 5px;
+  left: 0;
+  width: 100%;
+  height: 1px;
+}
+.blueprint > .corner.tl {
+  top: -6px;
+  left: -6px;
+}
+.blueprint > .corner.tr {
+  top: -6px;
+  right: -6px;
+}
+.blueprint > .corner.bl {
+  bottom: -6px;
+  left: -6px;
+}
+.blueprint > .corner.br {
+  bottom: -6px;
+  right: -6px;
+}

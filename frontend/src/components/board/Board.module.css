@@ -1,0 +1,97 @@
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--accent);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--panel);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.modeToggle {
+  display: flex;
+  border: 1px solid var(--hairline);
+}
+
+.modeButton {
+  background: transparent;
+  color: var(--ink-dim);
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  padding: 5px 14px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.modeButton:last-child {
+  border-right: 0;
+}
+.modeButton[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--ground);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.clockPlate {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--accent);
+}
+
+.clockLabel {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-label);
+  padding: 5px 9px;
+  white-space: nowrap;
+}
+
+.clockValue {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  background: var(--accent);
+  color: var(--ground);
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-dim);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

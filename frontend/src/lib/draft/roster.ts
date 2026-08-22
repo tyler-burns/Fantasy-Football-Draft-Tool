@@ -8,7 +8,9 @@ import type { BoardPlayer } from './view'
 export const ROSTER_SLOT_KEYS = ['QB', 'RB', 'WR', 'TE', 'FLEX', 'DST', 'K', 'BN'] as const
 export type RosterSlotKey = (typeof ROSTER_SLOT_KEYS)[number]
 
-export const LEAGUE_FIELD_FOR_SLOT: Readonly<Record<RosterSlotKey, keyof LeagueConfig>> = {
+export type SlotCountField = Exclude<keyof LeagueConfig, 'teams' | 'flex_positions'>
+
+export const LEAGUE_FIELD_FOR_SLOT: Readonly<Record<RosterSlotKey, SlotCountField>> = {
   QB: 'qb_slots',
   RB: 'rb_slots',
   WR: 'wr_slots',

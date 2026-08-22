@@ -1,0 +1,267 @@
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--panel);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tabGroup {
+  display: flex;
+  border: 1px solid var(--hairline);
+}
+
+.tab {
+  background: transparent;
+  color: var(--ink-dim);
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  padding: 5px 12px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.tab:last-child {
+  border-right: 0;
+}
+.tab[aria-pressed='true'] {
+  background: var(--color-neutral-800);
+}
+.tab[data-pos] {
+  color: var(--pos, var(--ink-dim));
+}
+.tab[aria-pressed='true'][data-pos] {
+  background: var(--pos-tint);
+}
+
+.tabCount {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.select {
+  padding: 5px 6px;
+  font-size: 12px;
+  background: var(--ground);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  flex: 0 0 auto;
+}
+
+.filterInput {
+  padding: 5px 9px;
+  font-size: 13px;
+  flex: 1 1 110px;
+  min-width: 0;
+  background: var(--ground);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+}
+
+.sortGroup {
+  display: flex;
+  border: 1px solid var(--hairline);
+  flex: 0 0 auto;
+}
+
+.sortButton {
+  background: transparent;
+  color: var(--ink-dim);
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  padding: 5px 10px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sortButton:last-child {
+  border-right: 0;
+}
+.sortButton[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--ground);
+}
+
+.availButton {
+  background: transparent;
+  color: var(--ink-dim);
+  border: 1px solid var(--hairline);
+  padding: 5px 10px;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.availButton[aria-pressed='true'] {
+  background: var(--color-neutral-800);
+  color: var(--ink);
+}
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.tableHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 40px minmax(96px, 1fr) 46px 50px 52px 50px 54px;
+  gap: 8px;
+  padding: 5px 16px;
+  border-bottom: 1px solid var(--accent);
+  background: var(--panel);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.alignRight {
+  text-align: right;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 40px minmax(96px, 1fr) 46px 50px 52px 50px 54px;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--ground);
+  border-left: 3px solid var(--pos);
+  background: var(--pos-tint-row);
+  cursor: pointer;
+}
+.row:hover {
+  background: var(--pos-tint-hover);
+}
+.row[data-drafted='true'] {
+  opacity: 0.45;
+  background: transparent;
+  cursor: default;
+}
+.row[data-drafted='true']:hover {
+  background: transparent;
+}
+
+.adpCell {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--pos);
+}
+
+.playerCell {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+}
+.playerName {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ink);
+}
+.row[data-drafted='true'] .playerName {
+  color: var(--ink-dim);
+}
+.playerTeam {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.posChip {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 1px 7px;
+  background: var(--pos-tint);
+  color: var(--pos);
+  justify-self: start;
+}
+
+.numeric {
+  font-size: 13px;
+  text-align: right;
+}
+
+.par {
+  composes: numeric;
+}
+.parPositive {
+  color: var(--ink);
+}
+.parNonPositive {
+  color: var(--ink-dim);
+}
+
+.vona {
+  composes: numeric;
+  color: var(--ink-dim);
+}
+
+.value {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+}
+.valueGood {
+  color: var(--pos-rb);
+}
+.valueBad {
+  color: var(--pos-qb);
+}
+.valueNeutral {
+  color: var(--ink-dim);
+}
+
+.empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--ink-dim);
+}
