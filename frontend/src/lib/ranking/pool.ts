@@ -1,8 +1,10 @@
 // Replaces the old 5-mode ranking abstraction (lib/ranking/modes.ts,
 // deleted) with the design handoff's simpler, live-draft-specific
-// semantics: Value = ADP - (current overall pick), and position rank is a
+// semantics: Value = ADP - (current overall pick), position rank is a
 // stable, full-pool-computed number (so a drafted player's "RB12" chip
-// never renumbers as the draft progresses).
+// never renumbers as the draft progresses), and VONA is pick-aware --
+// see computeDynamicVona -- rather than the Python port's plain
+// next-ranked-player gap.
 
 import type { PlayerProjection } from '../projections/types'
 import type { PlayerValuation, ValuationBoard } from '../valuation/models'
@@ -66,9 +68,58 @@ export function computeDraftValue(adp: number | null, clockIndex: number): numbe
   return adp - (clockIndex + 1)
 }
 
+/** Pick-aware VONA -- supersedes lib/valuation/vona.ts's `vona` field for
+ * display purposes (that Python-ported version stays untouched; it's still
+ * what the golden fixture checks). Section 17's plain "gap to the very next
+ * ranked player at the position" doesn't account for how many picks actually
+ * separate the caller from their own next turn; this does. For each
+ * position, every available player whose ADP falls before `nextPickIndex`
+ * is assumed gone by then (no ADP -> assumed NOT going soon, the
+ * conservative default); the "boundary" is the best-by-points player past
+ * that count, i.e. the best player expected to still be on the board. VONA
+ * is this player's points minus the boundary's -- positive and large for a
+ * player who'd otherwise be gone before the caller's next pick, at or below
+ * zero for one who's expected to still be there regardless. Null with no
+ * future pick to compare against (nextPickIndex is null) or once a
+ * position's boundary runs past the last available player (everyone left is
+ * expected to be gone -- no reference point). */
+export function computeDynamicVona(
+  players: readonly PlayerValuation[],
+  projectionsById: ReadonlyMap<string, PlayerProjection>,
+  nextPickIndex: number | null, // 0-based, per lib/draft/snake.ts's convention
+): Map<string, number | null> {
+  const result = new Map<string, number | null>()
+  if (nextPickIndex === null) {
+    for (const p of players) result.set(p.player_id, null)
+    return result
+  }
+  const nextPickNumber = nextPickIndex + 1 // 1-indexed, matching ADP's own scale
+
+  const byPosition = new Map<string, PlayerValuation[]>()
+  for (const p of players) {
+    const group = byPosition.get(p.position)
+    if (group) group.push(p)
+    else byPosition.set(p.position, [p])
+  }
+
+  for (const group of byPosition.values()) {
+    const sorted = [...group].sort(comparePoints)
+    const expectedGone = sorted.filter((p) => {
+      const adp = projectionsById.get(p.player_id)?.adp ?? null
+      return adp !== null && adp < nextPickNumber
+    }).length
+    const boundary = sorted[expectedGone]
+    for (const p of sorted) {
+      result.set(p.player_id, boundary ? p.points - boundary.points : null)
+    }
+  }
+  return result
+}
+
 export function buildPoolPlayers(
   board: ValuationBoard,
   positionRanks: ReadonlyMap<string, number>,
+  dynamicVona: ReadonlyMap<string, number | null>,
   clockIndex: number,
   projectionsById: ReadonlyMap<string, PlayerProjection>,
 ): PoolPlayer[] {
@@ -81,7 +132,7 @@ export function buildPoolPlayers(
       position: pv.position,
       points: pv.points,
       par: pv.par,
-      vona: pv.vona,
+      vona: dynamicVona.get(pv.player_id) ?? null,
       adp: projection.adp,
       position_rank: positionRanks.get(pv.player_id) ?? 0,
       draft_value: computeDraftValue(projection.adp, clockIndex),

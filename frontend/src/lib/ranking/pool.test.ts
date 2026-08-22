@@ -4,7 +4,7 @@ import type { PlayerValuation, ValuationBoard } from '../valuation/models'
 import { player } from '../__fixtures__/pools'
 import { buildBoard } from '../valuation/board'
 import { DEFAULT_LEAGUE } from '../valuation/league'
-import { buildPoolPlayers, computeDraftValue, computePositionRanks, valueTone } from './pool'
+import { buildPoolPlayers, computeDraftValue, computeDynamicVona, computePositionRanks, valueTone } from './pool'
 
 function makeProj(id: string, position: string, adp: number | null): PlayerProjection {
   return {
@@ -92,15 +92,94 @@ describe('computePositionRanks', () => {
   })
 })
 
+describe('computeDynamicVona', () => {
+  function pv(id: string, position: string, points: number): PlayerValuation {
+    return { player_id: id, position, points, par: null, vona: null }
+  }
+
+  it("the worked example: gap to the best player expected to survive to the caller's next pick", () => {
+    // My next pick is overall #20 (nextPickIndex = 19, 0-based). RBs with
+    // ADP under 20 are assumed gone by then; the best RB left at that point
+    // is the reference point for everyone else's VONA.
+    const players = [
+      pv('gibbs', 'RB', 360),
+      pv('rb2', 'RB', 340), pv('rb3', 'RB', 320), pv('rb4', 'RB', 300),
+      pv('rb5', 'RB', 270), // ADP 21 -- past the threshold, expected to survive
+      pv('rb6', 'RB', 250),
+    ]
+    const projectionsById = new Map([
+      ['gibbs', makeProj('gibbs', 'RB', 1)],
+      ['rb2', makeProj('rb2', 'RB', 8)],
+      ['rb3', makeProj('rb3', 'RB', 12)],
+      ['rb4', makeProj('rb4', 'RB', 18)],
+      ['rb5', makeProj('rb5', 'RB', 21)],
+      ['rb6', makeProj('rb6', 'RB', 30)],
+    ])
+    const vona = computeDynamicVona(players, projectionsById, 19)
+    // rb2/rb3/rb4 (ADP 8/12/18) are the 3 expected gone before pick 20;
+    // rb5 (ADP 21, points 270) is the best expected to remain.
+    expect(vona.get('gibbs')).toBe(90) // 360 - 270
+    expect(vona.get('rb5')).toBe(0) // the boundary player himself
+    expect(vona.get('rb6')).toBe(-20) // 250 - 270, expected to still be there too
+  })
+
+  it('a player with no ADP is never counted as "expected gone"', () => {
+    const players = [pv('a', 'RB', 300), pv('b', 'RB', 250), pv('c', 'RB', 200)]
+    const projectionsById = new Map([
+      ['a', makeProj('a', 'RB', null)],
+      ['b', makeProj('b', 'RB', null)],
+      ['c', makeProj('c', 'RB', null)],
+    ])
+    // Nobody has an ADP, so nobody is ever "expected gone" -- the boundary is
+    // always the best remaining player, rank 0.
+    const vona = computeDynamicVona(players, projectionsById, 0)
+    expect(vona.get('a')).toBe(0)
+    expect(vona.get('b')).toBe(-50)
+    expect(vona.get('c')).toBe(-100)
+  })
+
+  it('null with no future pick to compare against', () => {
+    const players = [pv('a', 'RB', 300)]
+    const projectionsById = new Map([['a', makeProj('a', 'RB', 1)]])
+    const vona = computeDynamicVona(players, projectionsById, null)
+    expect(vona.get('a')).toBeNull()
+  })
+
+  it("null once a position's boundary runs past the last available player", () => {
+    const players = [pv('a', 'RB', 300), pv('b', 'RB', 250)]
+    const projectionsById = new Map([
+      ['a', makeProj('a', 'RB', 1)],
+      ['b', makeProj('b', 'RB', 2)],
+    ])
+    // Both RBs are expected gone before pick 10 -- nobody left as a reference.
+    const vona = computeDynamicVona(players, projectionsById, 9)
+    expect(vona.get('a')).toBeNull()
+    expect(vona.get('b')).toBeNull()
+  })
+
+  it('is computed independently per position', () => {
+    const players = [pv('rb1', 'RB', 300), pv('wr1', 'WR', 200), pv('wr2', 'WR', 150)]
+    const projectionsById = new Map([
+      ['rb1', makeProj('rb1', 'RB', 1)],
+      ['wr1', makeProj('wr1', 'WR', 5)],
+      ['wr2', makeProj('wr2', 'WR', 40)],
+    ])
+    const vona = computeDynamicVona(players, projectionsById, 9) // next pick #10
+    expect(vona.get('rb1')).toBeNull() // only RB, expected gone, nobody left
+    expect(vona.get('wr1')).toBe(50) // 200 - 150, wr2 (ADP 40) expected to survive
+  })
+})
+
 describe('buildPoolPlayers', () => {
-  it('attaches adp, draft_value, position_rank, and the matching projection', () => {
+  it('attaches adp, draft_value, position_rank, dynamic VONA, and the matching projection', () => {
     const board: ValuationBoard = {
       replacement_levels: new Map([['RB', 100]]),
-      players: [{ player_id: 'rb1', position: 'RB', points: 250, par: 150, vona: 25 }],
+      players: [{ player_id: 'rb1', position: 'RB', points: 250, par: 150, vona: 999 }],
     }
     const ranks = new Map([['rb1', 1]])
+    const dynamicVona = new Map([['rb1', 25]])
     const projectionsById = new Map([['rb1', makeProj('rb1', 'RB', 5)]])
-    const [pool] = buildPoolPlayers(board, ranks, 0, projectionsById)
+    const [pool] = buildPoolPlayers(board, ranks, dynamicVona, 0, projectionsById)
     expect(pool).toMatchObject({
       player_id: 'rb1', position: 'RB', points: 250, par: 150, vona: 25,
       adp: 5, position_rank: 1, draft_value: 4,
@@ -108,11 +187,21 @@ describe('buildPoolPlayers', () => {
     expect(pool!.projection.player_id).toBe('rb1')
   })
 
+  it('falls back to null if a player is missing from the dynamic VONA map', () => {
+    const board: ValuationBoard = {
+      replacement_levels: new Map(),
+      players: [{ player_id: 'rb1', position: 'RB', points: 250, par: null, vona: null }],
+    }
+    const projectionsById = new Map([['rb1', makeProj('rb1', 'RB', 5)]])
+    const [pool] = buildPoolPlayers(board, new Map(), new Map(), 0, projectionsById)
+    expect(pool!.vona).toBeNull()
+  })
+
   it('throws if a player has no matching projection', () => {
     const board: ValuationBoard = {
       replacement_levels: new Map(),
       players: [{ player_id: 'ghost', position: 'RB', points: 100, par: null, vona: null }],
     }
-    expect(() => buildPoolPlayers(board, new Map(), 0, new Map())).toThrow()
+    expect(() => buildPoolPlayers(board, new Map(), new Map(), 0, new Map())).toThrow()
   })
 })

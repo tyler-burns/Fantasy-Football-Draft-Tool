@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
+import { draftShape, nextMyPickIndex, totalPicks } from '../lib/draft/snake'
 import type { BoardPlayer } from '../lib/draft/view'
 import type { PlayerProjection } from '../lib/projections/types'
-import { buildPoolPlayers, computePositionRanks, type PoolPlayer } from '../lib/ranking/pool'
+import { buildPoolPlayers, computeDynamicVona, computePositionRanks, type PoolPlayer } from '../lib/ranking/pool'
 import { toScoredPlayers } from '../lib/valuation/adapter'
 import { buildBoard } from '../lib/valuation/board'
 import type { LeagueConfig } from '../lib/valuation/league'
@@ -18,6 +19,7 @@ export function usePlayerPool(
   players: readonly PlayerProjection[],
   scoringConfig: ScoringConfig,
   league: LeagueConfig,
+  mySlot: number,
   draftedSet: ReadonlySet<string>,
   clockIndex: number,
   filters: RowFilters,
@@ -33,7 +35,7 @@ export function usePlayerPool(
   // docstring); they differ only in which players are listed. fullBoard is
   // also the draft-invariant basis for position ranks (lib/ranking/pool.ts)
   // and the source for drafted players' "what he was worth in the
-  // undrafted universe" PAR/VONA.
+  // undrafted universe" PAR/(dynamic) VONA.
   const fullBoard = useMemo(() => buildBoard(scored, league), [scored, league])
   const availableBoard = useMemo(
     () => buildBoard(scored, league, { drafted: draftedSet }),
@@ -42,14 +44,40 @@ export function usePlayerPool(
 
   const positionRanks = useMemo(() => computePositionRanks(fullBoard), [fullBoard])
 
+  // The pick VONA is measured against: the caller's next turn, not the
+  // current one -- see lib/draft/snake.ts's nextMyPickIndex and
+  // lib/ranking/pool.ts's computeDynamicVona.
+  const nextPick = useMemo(
+    () => nextMyPickIndex(clockIndex, league.teams, mySlot, totalPicks(draftShape(league))),
+    [clockIndex, league, mySlot],
+  )
+
+  const availableDynamicVona = useMemo(
+    () => computeDynamicVona(availableBoard.players, projectionsById, nextPick),
+    [availableBoard, projectionsById, nextPick],
+  )
+  // Drafted players' VONA, like their PAR, is shown as "what it would have
+  // been in the undrafted universe" -- computed from the full board so a
+  // drafted player's VONA doesn't reflect other players' absences.
+  const fullDynamicVona = useMemo(
+    () => computeDynamicVona(fullBoard.players, projectionsById, nextPick),
+    [fullBoard, projectionsById, nextPick],
+  )
+
   const availablePlayers = useMemo(
-    () => buildPoolPlayers(availableBoard, positionRanks, clockIndex, projectionsById),
-    [availableBoard, positionRanks, clockIndex, projectionsById],
+    () => buildPoolPlayers(availableBoard, positionRanks, availableDynamicVona, clockIndex, projectionsById),
+    [availableBoard, positionRanks, availableDynamicVona, clockIndex, projectionsById],
   )
   const draftedPlayers = useMemo(() => {
     const draftedInFullBoard = fullBoard.players.filter((pv) => draftedSet.has(pv.player_id))
-    return buildPoolPlayers({ replacement_levels: fullBoard.replacement_levels, players: draftedInFullBoard }, positionRanks, clockIndex, projectionsById)
-  }, [fullBoard, draftedSet, positionRanks, clockIndex, projectionsById])
+    return buildPoolPlayers(
+      { replacement_levels: fullBoard.replacement_levels, players: draftedInFullBoard },
+      positionRanks,
+      fullDynamicVona,
+      clockIndex,
+      projectionsById,
+    )
+  }, [fullBoard, draftedSet, positionRanks, fullDynamicVona, clockIndex, projectionsById])
 
   const poolSource: readonly PoolPlayer[] = useMemo(
     () => (availableOnly ? availablePlayers : [...availablePlayers, ...draftedPlayers]),

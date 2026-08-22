@@ -4,6 +4,7 @@ import {
   draftShape,
   isMyPick,
   myPickIndexes,
+  nextMyPickIndex,
   overallLabel,
   pickLabel,
   roundForPick,
@@ -112,6 +113,35 @@ describe('isMyPick / myPickIndexes', () => {
       expect(indexes.includes(i)).toBe(isMyPick(i, 12, 4))
     }
     expect(indexes.length).toBe(15) // one per round
+  })
+})
+
+describe('nextMyPickIndex', () => {
+  it('skips the current pick even if it is mine, and finds the next one', () => {
+    // 12 teams, mySlot=1 (slot 0): picks 0, 23, 24, 47, ...
+    expect(nextMyPickIndex(0, 12, 1, 180)).toBe(23)
+  })
+
+  it('finds the very next mySlot pick when it is not currently my turn', () => {
+    expect(nextMyPickIndex(5, 12, 1, 180)).toBe(23)
+    expect(nextMyPickIndex(20, 12, 1, 180)).toBe(23)
+  })
+
+  it('is null once mySlot has no remaining pick', () => {
+    // mySlot=1's last pick in a 180-pick, 12-team draft is index 168.
+    expect(nextMyPickIndex(168, 12, 1, 180)).toBe(null)
+    expect(nextMyPickIndex(179, 12, 1, 180)).toBe(null)
+  })
+
+  it('agrees with isMyPick/myPickIndexes for an exhaustive scan', () => {
+    const totalPicksCount = 180
+    for (const mySlot of [1, 4, 12]) {
+      const owned = myPickIndexes(totalPicksCount, 12, mySlot)
+      for (let clockIndex = -1; clockIndex < totalPicksCount; clockIndex++) {
+        const expected = owned.find((i) => i > clockIndex) ?? null
+        expect(nextMyPickIndex(clockIndex, 12, mySlot, totalPicksCount)).toBe(expected)
+      }
+    }
   })
 })
 
