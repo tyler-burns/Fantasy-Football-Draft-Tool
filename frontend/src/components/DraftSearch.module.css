@@ -1,15 +1,18 @@
 .wrapper {
   position: relative;
-  width: 280px;
+  width: 260px;
 }
 
 .input {
   width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--bg);
-  color: var(--text);
+  padding: 5px 9px;
+  font-size: 13px;
+  background: var(--ground);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+}
+.input:focus-visible {
+  border-color: var(--accent);
 }
 
 .dropdown {
@@ -18,26 +21,28 @@
   left: 0;
   right: 0;
   z-index: 10;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
   margin-top: 2px;
-  max-height: 280px;
+  max-height: 320px;
   overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 .option {
-  padding: 6px 8px;
+  padding: 6px 9px;
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
   cursor: pointer;
   font-size: 13px;
+  color: var(--ink);
 }
 
 .option:hover,
 .option.highlighted {
-  background: var(--bg-alt);
+  background: var(--color-neutral-800);
 }
 
 .option.disabled {
@@ -46,12 +51,16 @@
 }
 
 .tag {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  white-space: nowrap;
 }
 
 .empty {
-  padding: 8px;
+  padding: 8px 9px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-dim);
 }

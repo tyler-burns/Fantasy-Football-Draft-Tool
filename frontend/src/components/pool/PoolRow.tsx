@@ -1,12 +1,14 @@
 import type { PoolPlayer } from '../../lib/ranking/pool'
 import { valueTone } from '../../lib/ranking/pool'
 import { formatNumber, formatSigned } from '../../lib/format'
+import { InfoIcon } from '../icons/InfoIcon'
 import styles from './Pool.module.css'
 
 interface PoolRowProps {
   readonly player: PoolPlayer
   readonly isDrafted: boolean
   readonly onDraft: (playerId: string) => void
+  readonly onSelectPlayer: (playerId: string) => void
 }
 
 const VALUE_CLASS: Record<ReturnType<typeof valueTone>, string> = {
@@ -15,7 +17,7 @@ const VALUE_CLASS: Record<ReturnType<typeof valueTone>, string> = {
   neutral: styles.valueNeutral ?? '',
 }
 
-export function PoolRow({ player, isDrafted, onDraft }: PoolRowProps) {
+export function PoolRow({ player, isDrafted, onDraft, onSelectPlayer }: PoolRowProps) {
   const p = player.projection
 
   return (
@@ -44,6 +46,17 @@ export function PoolRow({ player, isDrafted, onDraft }: PoolRowProps) {
       <span className={`${styles.value} ${isDrafted ? styles.valueNeutral : VALUE_CLASS[valueTone(player.draft_value)]}`}>
         {isDrafted ? 'drafted' : formatSigned(player.draft_value, 0)}
       </span>
+      <button
+        type="button"
+        className={styles.infoButton}
+        aria-label={`${p.name ?? player.player_id} details`}
+        onClick={(e) => {
+          e.stopPropagation()
+          onSelectPlayer(player.player_id)
+        }}
+      >
+        <InfoIcon />
+      </button>
     </div>
   )
 }

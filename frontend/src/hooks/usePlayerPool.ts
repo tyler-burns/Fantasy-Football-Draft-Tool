@@ -60,6 +60,15 @@ export function usePlayerPool(
 
   const positionCounts = useMemo(() => computePositionCounts(availablePlayers), [availablePlayers])
 
+  // Independent of availableOnly/filters/sort, so the detail panel can still
+  // resolve a selected player after a filter change hides their row.
+  const poolPlayersById = useMemo(() => {
+    const map = new Map<string, PoolPlayer>()
+    for (const p of availablePlayers) map.set(p.player_id, p)
+    for (const p of draftedPlayers) map.set(p.player_id, p)
+    return map
+  }, [availablePlayers, draftedPlayers])
+
   const boardPlayersById = useMemo(() => {
     const map = new Map<string, BoardPlayer>()
     for (const pv of fullBoard.players) {
@@ -77,5 +86,5 @@ export function usePlayerPool(
     return map
   }, [fullBoard, positionRanks, projectionsById])
 
-  return { fullBoard, rows, positionCounts, boardPlayersById, projectionsById }
+  return { fullBoard, rows, positionCounts, boardPlayersById, poolPlayersById, projectionsById }
 }

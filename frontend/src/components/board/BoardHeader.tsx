@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import styles from './Board.module.css'
 
 export type BoardMode = 'grid' | 'list'
@@ -6,9 +7,10 @@ interface BoardHeaderProps {
   readonly mode: BoardMode
   readonly onModeChange: (mode: BoardMode) => void
   readonly clockLabel: string
+  readonly search?: ReactNode
 }
 
-export function BoardHeader({ mode, onModeChange, clockLabel }: BoardHeaderProps) {
+export function BoardHeader({ mode, onModeChange, clockLabel, search }: BoardHeaderProps) {
   return (
     <header className={styles.header}>
       <div className={styles.title}>The Board</div>
@@ -20,7 +22,7 @@ export function BoardHeader({ mode, onModeChange, clockLabel }: BoardHeaderProps
           List
         </button>
       </div>
-      <div className={styles.spacer} />
+      <div className={styles.spacer}>{search}</div>
       <div className={styles.clockPlate}>
         <span className={styles.clockLabel}>On the clock</span>
         <span className={styles.clockValue}>{clockLabel}</span>

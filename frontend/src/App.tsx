@@ -4,6 +4,8 @@ import boardStyles from './components/board/Board.module.css'
 import poolStyles from './components/pool/Pool.module.css'
 import railStyles from './components/rail/Rail.module.css'
 import { DraftRoom } from './components/DraftRoom'
+import { DraftSearch } from './components/DraftSearch'
+import { PlayerDetailPanel } from './components/PlayerDetailPanel'
 import { BoardGrid } from './components/board/BoardGrid'
 import { BoardHeader, type BoardMode } from './components/board/BoardHeader'
 import { BoardList } from './components/board/BoardList'
@@ -53,6 +55,7 @@ function App() {
   const [boardMode, setBoardMode] = useState<BoardMode>('grid')
   const [notices, setNotices] = useState<string[]>(loadWarnings)
   const [prunedStale, setPrunedStale] = useState(false)
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -139,6 +142,8 @@ function App() {
     dispatch({ type: 'setTeams', teams })
   }
 
+  const selectedPlayer = selectedPlayerId ? pool.poolPlayersById.get(selectedPlayerId) : undefined
+
   if (loadState.status === 'loading') {
     return <p className={styles.centered}>Loading projections…</p>
   }
@@ -160,71 +165,91 @@ function App() {
   }
 
   return (
-    <DraftRoom
-      rail={
-        <>
-          <RailHeader leagueLine={leagueLine} />
-          <div className={railStyles.scroll}>
-            <NoticeStrip notices={notices} onDismiss={(i) => setNotices((prev) => prev.filter((_, j) => j !== i))} />
-            <LeagueSection
-              teams={state.league.teams}
-              mySlot={state.mySlot}
-              onTeamsChange={handleTeamsChange}
-              onMySlotChange={(slot) => dispatch({ type: 'setMySlot', slot })}
+    <>
+      <DraftRoom
+        rail={
+          <>
+            <RailHeader leagueLine={leagueLine} />
+            <div className={railStyles.scroll}>
+              <NoticeStrip notices={notices} onDismiss={(i) => setNotices((prev) => prev.filter((_, j) => j !== i))} />
+              <LeagueSection
+                teams={state.league.teams}
+                mySlot={state.mySlot}
+                onTeamsChange={handleTeamsChange}
+                onMySlotChange={(slot) => dispatch({ type: 'setMySlot', slot })}
+              />
+              <RosterSlotsCard
+                league={state.league}
+                rounds={board.shape.rounds}
+                onBumpSlot={(key, delta) => dispatch({ type: 'bumpSlot', key, delta })}
+                onToggleFlexPosition={(position) => dispatch({ type: 'toggleFlexPosition', position })}
+              />
+              <ScoringSection
+                preset={state.scoring.preset}
+                config={state.scoring.config}
+                onPresetChange={(preset) => dispatch({ type: 'setPreset', preset })}
+                onFieldChange={(field: keyof ScoringConfig, value: number) => dispatch({ type: 'setScoringField', field, value })}
+              />
+              <ReplacementLevels levels={pool.fullBoard.replacement_levels} />
+              <MyRoster entries={rosterEntries} teams={state.league.teams} filledCount={myPickCount} rounds={board.shape.rounds} />
+              <BoardControl
+                canUndo={state.draftedIds.length > 0}
+                canReset={state.draftedIds.length > 0}
+                onUndo={() => dispatch({ type: 'undoLastPick' })}
+                onResetDraft={() => dispatch({ type: 'resetDraft' })}
+                onResetAll={() => dispatch({ type: 'resetAll' })}
+              />
+              <PositionKey />
+            </div>
+          </>
+        }
+        board={
+          <section className={boardStyles.pane}>
+            <BoardHeader
+              mode={boardMode}
+              onModeChange={setBoardMode}
+              clockLabel={board.clock.label}
+              search={<DraftSearch players={players} draftedSet={draftedSet} onDraft={(id) => dispatch({ type: 'draft', playerId: id })} />}
             />
-            <RosterSlotsCard
-              league={state.league}
-              rounds={board.shape.rounds}
-              onBumpSlot={(key, delta) => dispatch({ type: 'bumpSlot', key, delta })}
-              onToggleFlexPosition={(position) => dispatch({ type: 'toggleFlexPosition', position })}
+            <div className={boardStyles.body}>
+              {boardMode === 'grid' ? (
+                <BoardGrid teamColumns={board.teamColumns} gridRows={board.gridRows} />
+              ) : (
+                <BoardList listRounds={board.listRounds} />
+              )}
+            </div>
+          </section>
+        }
+        pool={
+          <section className={poolStyles.pane}>
+            <PoolHeader
+              filters={filters}
+              onFiltersChange={setFilters}
+              positionCounts={pool.positionCounts}
+              teams={teams}
+              sort={sort}
+              onSortChange={setSort}
+              availableOnly={availableOnly}
+              onAvailableOnlyChange={setAvailableOnly}
             />
-            <ScoringSection
-              preset={state.scoring.preset}
-              config={state.scoring.config}
-              onPresetChange={(preset) => dispatch({ type: 'setPreset', preset })}
-              onFieldChange={(field: keyof ScoringConfig, value: number) => dispatch({ type: 'setScoringField', field, value })}
+            <PoolTable
+              players={pool.rows}
+              draftedIds={draftedSet}
+              onDraft={(id) => dispatch({ type: 'draft', playerId: id })}
+              onSelectPlayer={setSelectedPlayerId}
             />
-            <ReplacementLevels levels={pool.fullBoard.replacement_levels} />
-            <MyRoster entries={rosterEntries} teams={state.league.teams} filledCount={myPickCount} rounds={board.shape.rounds} />
-            <BoardControl
-              canUndo={state.draftedIds.length > 0}
-              canReset={state.draftedIds.length > 0}
-              onUndo={() => dispatch({ type: 'undoLastPick' })}
-              onResetDraft={() => dispatch({ type: 'resetDraft' })}
-              onResetAll={() => dispatch({ type: 'resetAll' })}
-            />
-            <PositionKey />
-          </div>
-        </>
-      }
-      board={
-        <section className={boardStyles.pane}>
-          <BoardHeader mode={boardMode} onModeChange={setBoardMode} clockLabel={board.clock.label} />
-          <div className={boardStyles.body}>
-            {boardMode === 'grid' ? (
-              <BoardGrid teamColumns={board.teamColumns} gridRows={board.gridRows} />
-            ) : (
-              <BoardList listRounds={board.listRounds} />
-            )}
-          </div>
-        </section>
-      }
-      pool={
-        <section className={poolStyles.pane}>
-          <PoolHeader
-            filters={filters}
-            onFiltersChange={setFilters}
-            positionCounts={pool.positionCounts}
-            teams={teams}
-            sort={sort}
-            onSortChange={setSort}
-            availableOnly={availableOnly}
-            onAvailableOnlyChange={setAvailableOnly}
-          />
-          <PoolTable players={pool.rows} draftedIds={draftedSet} onDraft={(id) => dispatch({ type: 'draft', playerId: id })} />
-        </section>
-      }
-    />
+          </section>
+        }
+      />
+      {selectedPlayer && (
+        <PlayerDetailPanel
+          player={selectedPlayer}
+          isDrafted={draftedSet.has(selectedPlayer.player_id)}
+          scoringConfig={state.scoring.config}
+          onClose={() => setSelectedPlayerId(null)}
+        />
+      )}
+    </>
   )
 }
 

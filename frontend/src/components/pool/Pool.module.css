@@ -140,7 +140,7 @@
   top: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: 40px minmax(96px, 1fr) 46px 50px 52px 50px 54px;
+  grid-template-columns: 40px minmax(96px, 1fr) 46px 50px 52px 50px 54px 22px;
   gap: 8px;
   padding: 5px 16px;
   border-bottom: 1px solid var(--accent);
@@ -159,7 +159,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 40px minmax(96px, 1fr) 46px 50px 52px 50px 54px;
+  grid-template-columns: 40px minmax(96px, 1fr) 46px 50px 52px 50px 54px 22px;
   gap: 8px;
   align-items: center;
   padding: 6px 16px;
@@ -264,4 +264,17 @@
   padding: 24px;
   text-align: center;
   color: var(--ink-dim);
+}
+
+.infoButton {
+  justify-self: center;
+  background: transparent;
+  border: 0;
+  padding: 2px;
+  color: var(--ink-dim);
+  cursor: pointer;
+  line-height: 0;
+}
+.infoButton:hover {
+  color: var(--accent-label);
 }

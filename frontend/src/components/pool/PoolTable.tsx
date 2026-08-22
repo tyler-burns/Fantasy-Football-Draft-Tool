@@ -6,9 +6,10 @@ interface PoolTableProps {
   readonly players: readonly PoolPlayer[]
   readonly draftedIds: ReadonlySet<string>
   readonly onDraft: (playerId: string) => void
+  readonly onSelectPlayer: (playerId: string) => void
 }
 
-export function PoolTable({ players, draftedIds, onDraft }: PoolTableProps) {
+export function PoolTable({ players, draftedIds, onDraft, onSelectPlayer }: PoolTableProps) {
   return (
     <div className={styles.scroll}>
       <div className={styles.tableHeader}>
@@ -19,12 +20,19 @@ export function PoolTable({ players, draftedIds, onDraft }: PoolTableProps) {
         <span className={styles.alignRight}>PAR</span>
         <span className={styles.alignRight}>VONA</span>
         <span className={styles.alignRight}>Value</span>
+        <span />
       </div>
       {players.length === 0 ? (
         <div className={styles.empty}>No players match the current filters.</div>
       ) : (
         players.map((player) => (
-          <PoolRow key={player.player_id} player={player} isDrafted={draftedIds.has(player.player_id)} onDraft={onDraft} />
+          <PoolRow
+            key={player.player_id}
+            player={player}
+            isDrafted={draftedIds.has(player.player_id)}
+            onDraft={onDraft}
+            onSelectPlayer={onSelectPlayer}
+          />
         ))
       )}
     </div>
