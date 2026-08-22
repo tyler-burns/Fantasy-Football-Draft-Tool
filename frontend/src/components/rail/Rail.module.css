@@ -106,3 +106,309 @@
 .notice button:hover {
   color: var(--accent-label);
 }
+
+/* ---- Shared field primitives ---- */
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.select {
+  padding: 5px 6px;
+  font-size: 13px;
+  background: var(--ground);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+}
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.sectionMeta {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+}
+
+.note {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink-dim);
+}
+
+/* ---- Roster slots ---- */
+
+.slotCard {
+  padding: 11px 11px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.slotList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slotRow {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) 22px 24px 22px;
+  align-items: center;
+  gap: 6px;
+}
+
+.slotKey {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--pos);
+}
+
+.slotDivider {
+  height: 1px;
+  background: var(--hairline);
+  display: block;
+}
+
+.slotBtn {
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--ink-dim);
+  font-size: 13px;
+  line-height: 1;
+  padding: 3px 0;
+  cursor: pointer;
+}
+.slotBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.slotCount {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.flexRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.flexLabel {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.flexChip {
+  background: transparent;
+  color: var(--ink-dim);
+  border: 1px solid var(--hairline);
+  padding: 2px 8px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.flexChip[data-pos][aria-pressed='true'] {
+  background: var(--pos-tint);
+  color: var(--pos);
+  border-color: var(--pos);
+}
+
+/* ---- Scoring ---- */
+
+.presetGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: 1px solid var(--hairline);
+}
+
+.presetButton {
+  background: transparent;
+  color: var(--ink-dim);
+  border: 0;
+  border-right: 1px solid var(--hairline);
+  padding: 6px 4px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.presetButton:last-child {
+  border-right: 0;
+}
+.presetButton[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--ground);
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 8px;
+}
+
+.numberField {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+
+.numberInput {
+  padding: 3px 5px;
+  font-size: 12px;
+  text-align: right;
+  background: var(--ground);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  width: 100%;
+}
+
+/* ---- Replacement levels ---- */
+
+.replGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--hairline);
+}
+
+.replCell {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  background: var(--ground);
+  padding: 5px 8px;
+  border-left: 3px solid var(--pos);
+}
+
+.replPos {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--pos);
+}
+
+.replValue {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---- My roster ---- */
+
+.rosterList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rosterRow {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 7px;
+  border-left: 3px solid var(--hairline);
+  background: transparent;
+  padding: 4px 7px;
+  min-height: 26px;
+}
+.rosterRow[data-pos] {
+  border-left-color: var(--pos);
+  background: var(--pos-tint);
+}
+
+.rosterSlot {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+}
+.rosterRow[data-pos] .rosterSlot {
+  color: var(--pos);
+}
+
+.rosterNameGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.rosterName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rosterRow[data-pos] .rosterName {
+  color: var(--ink);
+}
+
+.rosterTeam {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.rosterPick {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  color: var(--ink-dim);
+  text-align: right;
+}
+
+/* ---- Position key ---- */
+
+.legendRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.legendChip {
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  background: var(--pos-tint);
+  color: var(--pos);
+  border-left: 3px solid var(--pos);
+}
