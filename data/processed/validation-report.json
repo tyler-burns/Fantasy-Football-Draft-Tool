@@ -1,7 +1,7 @@
 {
   "season": 2026,
   "source": "sleeper",
-  "generated_at": "2026-08-20T12:57:19.625567+00:00",
+  "generated_at": "2026-09-04T18:18:07.684544+00:00",
   "status": "warned",
   "player_count": 300,
   "checks_run": [
@@ -17,102 +17,91 @@
     "adp_present",
     "tier3_reference_ppr_divergence"
   ],
-  "warning_count": 2,
+  "warning_count": 1,
   "error_count": 0,
   "issues": [
     {
-      "check": "stats_non_negative",
-      "severity": "warning",
-      "message": "rush_yds is negative (-0.02)",
-      "player_id": "4574",
-      "player_name": "Cooper Rush",
-      "context": {
-        "field": "rush_yds",
-        "value": -0.02
-      }
-    },
-    {
       "check": "tier3_reference_ppr_divergence",
       "severity": "warning",
-      "message": "33/392 (8.4%) players diverge >10% from Sleeper's own reference PPR total -- exceeds the 5.0% threshold. This usually indicates a field-mapping bug in the normalizer.",
+      "message": "34/374 (9.1%) players diverge >10% from Sleeper's own reference PPR total -- exceeds the 5.0% threshold. This usually indicates a field-mapping bug in the normalizer.",
       "player_id": null,
       "player_name": null,
       "context": {
         "summary": {
-          "compared": 392,
-          "diverged": 33,
-          "diverged_pct": 8.42,
+          "compared": 374,
+          "diverged": 34,
+          "diverged_pct": 9.09,
           "threshold_pct": 5.0,
           "worst": [
             {
-              "player_id": "96",
-              "player_name": "Aaron Rodgers",
-              "computed": 200.25,
-              "reference": 252.38,
-              "pct_diff": 20.66
+              "player_id": "12524",
+              "player_name": "Shedeur Sanders",
+              "computed": 89.51,
+              "reference": 118.21,
+              "pct_diff": 24.28
             },
             {
-              "player_id": "4017",
-              "player_name": "Deshaun Watson",
-              "computed": 105.56,
-              "reference": 131.09,
-              "pct_diff": 19.48
+              "player_id": "96",
+              "player_name": "Aaron Rodgers",
+              "computed": 233.04,
+              "reference": 293.57,
+              "pct_diff": 20.62
             },
             {
               "player_id": "4943",
               "player_name": "Sam Darnold",
-              "computed": 262.29,
-              "reference": 324.28,
-              "pct_diff": 19.12
-            },
-            {
-              "player_id": "3257",
-              "player_name": "Jacoby Brissett",
-              "computed": 180.74,
-              "reference": 222.58,
-              "pct_diff": 18.8
+              "computed": 275.09,
+              "reference": 340.48,
+              "pct_diff": 19.2
             },
             {
               "player_id": "1373",
               "player_name": "Geno Smith",
-              "computed": 194.05,
-              "reference": 238.8,
+              "computed": 220.63,
+              "reference": 272.42,
+              "pct_diff": 19.01
+            },
+            {
+              "player_id": "4017",
+              "player_name": "Deshaun Watson",
+              "computed": 200.57,
+              "reference": 246.83,
               "pct_diff": 18.74
             },
             {
               "player_id": "4892",
               "player_name": "Baker Mayfield",
-              "computed": 271.17,
+              "computed": 271.19,
               "reference": 332.55,
-              "pct_diff": 18.46
+              "pct_diff": 18.45
+            },
+            {
+              "player_id": "3257",
+              "player_name": "Jacoby Brissett",
+              "computed": 239.19,
+              "reference": 293.05,
+              "pct_diff": 18.38
             },
             {
               "player_id": "13269",
               "player_name": "Fernando Mendoza",
-              "computed": 163.21,
-              "reference": 199.01,
-              "pct_diff": 17.99
+              "computed": 195.59,
+              "reference": 237.92,
+              "pct_diff": 17.79
             },
             {
-              "player_id": "1166",
-              "player_name": "Kirk Cousins",
-              "computed": 26.35,
-              "reference": 32.0,
-              "pct_diff": 17.64
-            },
-            {
-              "player_id": "6768",
-              "player_name": "Tua Tagovailoa",
-              "computed": 166.37,
-              "reference": 201.45,
-              "pct_diff": 17.41
+              "player_id": "12522",
+              "player_name": "Cam Ward",
+              "computed": 243.83,
+              "reference": 295.69,
+              "pct_diff": 17.54
             },
             {
               "player_id": "421",
               "player_name": "Matthew Stafford",
-              "computed": 260.79,
-              "reference": 315.76,
-              "pct_diff": 17.41
+              "computed": 273.9,
+              "reference": 332.02,
+              "pct_diff": 17.51
             }
           ],
           "loud": true
@@ -121,80 +110,80 @@
     }
   ],
   "tier3": {
-    "compared": 392,
-    "diverged": 33,
-    "diverged_pct": 8.42,
+    "compared": 374,
+    "diverged": 34,
+    "diverged_pct": 9.09,
     "threshold_pct": 5.0,
     "worst": [
       {
-        "player_id": "96",
-        "player_name": "Aaron Rodgers",
-        "computed": 200.25,
-        "reference": 252.38,
-        "pct_diff": 20.66
+        "player_id": "12524",
+        "player_name": "Shedeur Sanders",
+        "computed": 89.51,
+        "reference": 118.21,
+        "pct_diff": 24.28
       },
       {
-        "player_id": "4017",
-        "player_name": "Deshaun Watson",
-        "computed": 105.56,
-        "reference": 131.09,
-        "pct_diff": 19.48
+        "player_id": "96",
+        "player_name": "Aaron Rodgers",
+        "computed": 233.04,
+        "reference": 293.57,
+        "pct_diff": 20.62
       },
       {
         "player_id": "4943",
         "player_name": "Sam Darnold",
-        "computed": 262.29,
-        "reference": 324.28,
-        "pct_diff": 19.12
-      },
-      {
-        "player_id": "3257",
-        "player_name": "Jacoby Brissett",
-        "computed": 180.74,
-        "reference": 222.58,
-        "pct_diff": 18.8
+        "computed": 275.09,
+        "reference": 340.48,
+        "pct_diff": 19.2
       },
       {
         "player_id": "1373",
         "player_name": "Geno Smith",
-        "computed": 194.05,
-        "reference": 238.8,
+        "computed": 220.63,
+        "reference": 272.42,
+        "pct_diff": 19.01
+      },
+      {
+        "player_id": "4017",
+        "player_name": "Deshaun Watson",
+        "computed": 200.57,
+        "reference": 246.83,
         "pct_diff": 18.74
       },
       {
         "player_id": "4892",
         "player_name": "Baker Mayfield",
-        "computed": 271.17,
+        "computed": 271.19,
         "reference": 332.55,
-        "pct_diff": 18.46
+        "pct_diff": 18.45
+      },
+      {
+        "player_id": "3257",
+        "player_name": "Jacoby Brissett",
+        "computed": 239.19,
+        "reference": 293.05,
+        "pct_diff": 18.38
       },
       {
         "player_id": "13269",
         "player_name": "Fernando Mendoza",
-        "computed": 163.21,
-        "reference": 199.01,
-        "pct_diff": 17.99
+        "computed": 195.59,
+        "reference": 237.92,
+        "pct_diff": 17.79
       },
       {
-        "player_id": "1166",
-        "player_name": "Kirk Cousins",
-        "computed": 26.35,
-        "reference": 32.0,
-        "pct_diff": 17.64
-      },
-      {
-        "player_id": "6768",
-        "player_name": "Tua Tagovailoa",
-        "computed": 166.37,
-        "reference": 201.45,
-        "pct_diff": 17.41
+        "player_id": "12522",
+        "player_name": "Cam Ward",
+        "computed": 243.83,
+        "reference": 295.69,
+        "pct_diff": 17.54
       },
       {
         "player_id": "421",
         "player_name": "Matthew Stafford",
-        "computed": 260.79,
-        "reference": 315.76,
-        "pct_diff": 17.41
+        "computed": 273.9,
+        "reference": 332.02,
+        "pct_diff": 17.51
       }
     ],
     "loud": true
