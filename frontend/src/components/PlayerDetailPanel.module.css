@@ -149,3 +149,28 @@
 .valueNeutral {
   color: var(--ink-dim);
 }
+
+.ignoreButton {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 4px;
+  cursor: pointer;
+}
+.ignoreButton:hover {
+  border-color: var(--accent);
+  color: var(--accent-label);
+}
+
+.ignoreNote {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink-dim);
+  margin: 7px 0 0;
+}

@@ -50,12 +50,12 @@ class ThrowingStorage implements Storage {
 }
 
 describe('config round-trip', () => {
-  it('round-trips scoring, league, and mySlot, including flex_positions Set<->array', () => {
+  it('round-trips scoring, league, mySlot, and ignoredIds, including flex_positions Set<->array', () => {
     const storage = new FakeStorage()
     const scoring = { preset: 'custom' as const, config: { ...PPR, pass_td_points: 5.0 } }
     const league = { ...DEFAULT_LEAGUE, teams: 10, flex_positions: FLEX_RB_WR }
 
-    saveConfig(scoring, league, 7, storage)
+    saveConfig(scoring, league, 7, ['injured1', 'suspended2'], storage)
     const loaded = loadConfig(storage)
 
     expect(loaded.warning).toBeNull()
@@ -63,11 +63,12 @@ describe('config round-trip', () => {
     expect(loaded.league.teams).toBe(10)
     expect(loaded.league.flex_positions).toEqual(FLEX_RB_WR)
     expect(loaded.mySlot).toBe(7)
+    expect(loaded.ignoredIds).toEqual(['injured1', 'suspended2'])
   })
 
   it('flex_positions is stored as a real array, not "{}" (the Set JSON.stringify trap)', () => {
     const storage = new FakeStorage()
-    saveConfig({ preset: 'ppr', config: PPR }, DEFAULT_LEAGUE, 1, storage)
+    saveConfig({ preset: 'ppr', config: PPR }, DEFAULT_LEAGUE, 1, [], storage)
     const raw = JSON.parse(storage.getItem(CONFIG_KEY)!)
     expect(Array.isArray(raw.league.flex_positions)).toBe(true)
     expect(raw.league.flex_positions.length).toBeGreaterThan(0)
@@ -79,6 +80,7 @@ describe('config round-trip', () => {
     expect(loaded.scoring.config).toEqual(HALF_PPR)
     expect(loaded.league).toEqual(INITIAL_LEAGUE)
     expect(loaded.mySlot).toBe(1)
+    expect(loaded.ignoredIds).toEqual([])
   })
 
   it('corrupt JSON falls back to defaults with a warning', () => {
@@ -130,7 +132,41 @@ describe('config round-trip', () => {
   })
 
   it('a throwing setItem does not propagate', () => {
-    expect(() => saveConfig({ preset: 'ppr', config: PPR }, DEFAULT_LEAGUE, 1, new ThrowingStorage())).not.toThrow()
+    expect(() => saveConfig({ preset: 'ppr', config: PPR }, DEFAULT_LEAGUE, 1, [], new ThrowingStorage())).not.toThrow()
+  })
+
+  it('a payload from before ignoredIds existed loads with an empty array and no warning', () => {
+    const storage = new FakeStorage()
+    storage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({
+        version: 1,
+        scoring: { preset: 'ppr', config: PPR },
+        league: { ...DEFAULT_LEAGUE, flex_positions: [...DEFAULT_LEAGUE.flex_positions] },
+        mySlot: 1,
+        // no ignoredIds field
+      }),
+    )
+    const loaded = loadConfig(storage)
+    expect(loaded.ignoredIds).toEqual([])
+    expect(loaded.warning).toBeNull()
+  })
+
+  it('a malformed ignoredIds falls back to empty, no warning', () => {
+    const storage = new FakeStorage()
+    storage.setItem(
+      CONFIG_KEY,
+      JSON.stringify({
+        version: 1,
+        scoring: { preset: 'ppr', config: PPR },
+        league: { ...DEFAULT_LEAGUE, flex_positions: [...DEFAULT_LEAGUE.flex_positions] },
+        mySlot: 1,
+        ignoredIds: ['ok', 42, null], // not every entry is a string
+      }),
+    )
+    const loaded = loadConfig(storage)
+    expect(loaded.ignoredIds).toEqual([])
+    expect(loaded.warning).toBeNull()
   })
 
   it('a payload from before mySlot existed loads with the default and no warning', () => {

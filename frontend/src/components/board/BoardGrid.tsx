@@ -38,7 +38,7 @@ export function BoardGrid({ teamColumns, gridRows }: BoardGridProps) {
                 {cell.player && (
                   <span className={styles.gridCellPos}>
                     {cell.player.position}
-                    {!cell.player.isPlaceholder && cell.player.position_rank}
+                    {!cell.player.isPlaceholder && !cell.player.isIgnored && cell.player.position_rank}
                   </span>
                 )}
               </div>
@@ -47,7 +47,8 @@ export function BoardGrid({ teamColumns, gridRows }: BoardGridProps) {
               </span>
               {cell.player && !cell.player.isPlaceholder && (
                 <span className={styles.gridCellSub}>
-                  {cell.player.team ?? ''} · {formatNumber(cell.player.points)}
+                  {cell.player.team ?? ''}
+                  {!cell.player.isIgnored && ` · ${formatNumber(cell.player.points)}`}
                 </span>
               )}
             </div>

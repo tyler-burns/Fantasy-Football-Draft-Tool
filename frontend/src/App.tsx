@@ -12,6 +12,7 @@ import { BoardList } from './components/board/BoardList'
 import { PoolHeader } from './components/pool/PoolHeader'
 import { PoolTable } from './components/pool/PoolTable'
 import { BoardControl } from './components/rail/BoardControl'
+import { IgnoredPlayers } from './components/rail/IgnoredPlayers'
 import { LeagueSection } from './components/rail/LeagueSection'
 import { MyRoster } from './components/rail/MyRoster'
 import { NoticeStrip } from './components/rail/NoticeStrip'
@@ -49,7 +50,7 @@ const PRESET_LABELS: Record<PresetName | 'custom', string> = {
 
 function App() {
   const [loadState, setLoadState] = useState<LoadState>({ status: 'loading' })
-  const { state, dispatch, draftedSet, loadWarnings } = useAppState()
+  const { state, dispatch, draftedSet, ignoredSet, loadWarnings } = useAppState()
   const [filters, setFilters] = useState<RowFilters>(DEFAULT_FILTERS)
   const [sort, setSort] = useState<PoolSort>(DEFAULT_SORT)
   const [availableOnly, setAvailableOnly] = useState(true)
@@ -100,6 +101,7 @@ function App() {
     players,
     state.scoring.config,
     state.league,
+    ignoredSet,
     draftedSet,
     clockIndex,
     filters,
@@ -145,6 +147,14 @@ function App() {
 
   function handleLogPlaceholder(position: PlaceholderPosition) {
     dispatch({ type: 'draft', playerId: makePlaceholderPickId(position, state.draftedIds.length) })
+  }
+
+  // Ignoring drops the player from the valued pool on the next render, so
+  // pool.poolPlayersById would stop resolving them anyway -- close
+  // explicitly too, so there's no stale-content flash before that happens.
+  function handleIgnore(playerId: string) {
+    dispatch({ type: 'ignorePlayer', playerId })
+    setSelectedPlayerId(null)
   }
 
   const selectedPlayer = selectedPlayerId ? pool.poolPlayersById.get(selectedPlayerId) : undefined
@@ -197,6 +207,11 @@ function App() {
               />
               <ReplacementLevels levels={pool.fullBoard.replacement_levels} />
               <MyRoster entries={rosterEntries} teams={state.league.teams} filledCount={myPickCount} rounds={board.shape.rounds} />
+              <IgnoredPlayers
+                ignoredIds={state.ignoredIds}
+                projectionsById={pool.projectionsById}
+                onUnignore={(playerId) => dispatch({ type: 'unignorePlayer', playerId })}
+              />
               <BoardControl
                 canUndo={state.draftedIds.length > 0}
                 canReset={state.draftedIds.length > 0}
@@ -216,7 +231,14 @@ function App() {
               mode={boardMode}
               onModeChange={setBoardMode}
               clockLabel={board.clock.label}
-              search={<DraftSearch players={players} draftedSet={draftedSet} onDraft={(id) => dispatch({ type: 'draft', playerId: id })} />}
+              search={
+                <DraftSearch
+                  players={players}
+                  draftedSet={draftedSet}
+                  ignoredSet={ignoredSet}
+                  onDraft={(id) => dispatch({ type: 'draft', playerId: id })}
+                />
+              }
             />
             <div className={boardStyles.body}>
               {boardMode === 'grid' ? (
@@ -254,6 +276,7 @@ function App() {
           isDrafted={draftedSet.has(selectedPlayer.player_id)}
           scoringConfig={state.scoring.config}
           onClose={() => setSelectedPlayerId(null)}
+          onIgnore={() => handleIgnore(selectedPlayer.player_id)}
         />
       )}
     </>

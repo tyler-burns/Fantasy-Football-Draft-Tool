@@ -12,6 +12,7 @@ interface PlayerDetailPanelProps {
   readonly isDrafted: boolean
   readonly scoringConfig: ScoringConfig
   readonly onClose: () => void
+  readonly onIgnore: () => void
 }
 
 function opSymbol(op: 'div' | 'mul'): string {
@@ -29,7 +30,7 @@ const VALUE_CLASS: Record<ReturnType<typeof valueTone>, string> = {
  * and pool interactive underneath for comparison during a live draft.
  * Opened from a pool row's info-icon affordance (new in the Draft Room
  * redesign -- the handoff's own screens have no such panel). */
-export function PlayerDetailPanel({ player, isDrafted, scoringConfig, onClose }: PlayerDetailPanelProps) {
+export function PlayerDetailPanel({ player, isDrafted, scoringConfig, onClose, onIgnore }: PlayerDetailPanelProps) {
   const p = player.projection
 
   useEffect(() => {
@@ -134,6 +135,17 @@ export function PlayerDetailPanel({ player, isDrafted, scoringConfig, onClose }:
               </span>
             </div>
           </div>
+        </div>
+
+        <div className={styles.section}>
+          <button type="button" className={styles.ignoreButton} onClick={onIgnore}>
+            Ignore this player
+          </button>
+          <p className={styles.ignoreNote}>
+            For an injury or suspension the projection hasn't caught up with -- excludes them from PAR, VONA, and
+            replacement level for everyone, and removes them from the pool. Restore from the rail's Ignored players
+            list.
+          </p>
         </div>
       </aside>
     </Blueprint>

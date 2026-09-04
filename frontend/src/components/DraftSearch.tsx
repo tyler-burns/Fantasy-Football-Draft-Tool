@@ -6,6 +6,7 @@ import styles from './DraftSearch.module.css'
 interface DraftSearchProps {
   readonly players: readonly PlayerProjection[] // all players, so drafted matches are still visible
   readonly draftedSet: ReadonlySet<string>
+  readonly ignoredSet: ReadonlySet<string>
   readonly onDraft: (playerId: string) => void
 }
 
@@ -13,8 +14,11 @@ interface DraftSearchProps {
  * highlighted player is drafted immediately. Searches the full player list
  * (not just available) so a mistyped duplicate pick is visibly a duplicate
  * -- already-drafted matches render greyed out with a tag rather than being
- * hidden, and selecting one is a no-op. */
-export function DraftSearch({ players, draftedSet, onDraft }: DraftSearchProps) {
+ * hidden, and selecting one is a no-op. Ignored (injured/suspended) players
+ * stay fully searchable and draftable here -- excluded from everyone else's
+ * valuation, not from the real draft log -- just tagged so a pick doesn't
+ * happen by surprise. */
+export function DraftSearch({ players, draftedSet, ignoredSet, onDraft }: DraftSearchProps) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [highlighted, setHighlighted] = useState(0)
@@ -75,6 +79,7 @@ export function DraftSearch({ players, draftedSet, onDraft }: DraftSearchProps) 
           {matches.length === 0 && <div className={styles.empty}>No matches</div>}
           {matches.map((player, i) => {
             const drafted = draftedSet.has(player.player_id)
+            const ignored = ignoredSet.has(player.player_id)
             return (
               <div
                 key={player.player_id}
@@ -85,7 +90,7 @@ export function DraftSearch({ players, draftedSet, onDraft }: DraftSearchProps) 
                 <span>
                   {player.name} · {player.position} {player.team}
                 </span>
-                {drafted && <span className={styles.tag}>drafted</span>}
+                {drafted ? <span className={styles.tag}>drafted</span> : ignored ? <span className={styles.tag}>ignored</span> : null}
               </div>
             )
           })}

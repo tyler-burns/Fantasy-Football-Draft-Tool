@@ -4,7 +4,10 @@ import type { BoardPlayer } from './view'
 import { fillRoster, rosterSlotCounts, slotKeyForPosition, ROSTER_SLOT_KEYS } from './roster'
 
 function player(id: string, position: string): BoardPlayer {
-  return { player_id: id, name: id, team: 'BUF', position, position_rank: 1, points: 100, adp: 1, isPlaceholder: false }
+  return {
+    player_id: id, name: id, team: 'BUF', position, position_rank: 1,
+    points: 100, adp: 1, isPlaceholder: false, isIgnored: false,
+  }
 }
 
 const TEAMS = 12

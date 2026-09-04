@@ -116,6 +116,51 @@ exactly the "fine with them not being included" the feature was scoped
 to -- and `pruneStaleDraftedIds` exempts them from its normal
 not-in-the-projections-file staleness check, since by design they never are.
 
+**Ignored players** (`lib/ranking/pool.ts`'s `excludeIgnored`): a real
+player whose projection has gone stale -- hurt or suspended after the
+snapshot was generated, with no updated number to reflect it -- can be
+flagged from the "Ignore this player" button on `PlayerDetailPanel`. The
+resulting `AppState.ignoredIds` (persisted alongside scoring/league/mySlot;
+survives `resetDraft`, since real-world injury status doesn't change just
+because a mock draft does, but not `resetAll`) is filtered out of `players`
+in `usePlayerPool.ts` *before* `toScoredPlayers` ever runs --
+`lib/valuation/adapter.ts` stays untouched, same as the placeholder
+mechanism above. An ignored player therefore never consumes a
+dedicated/FLEX starter slot in replacement level, never anchors anyone's
+VONA, and carries no PAR of its own -- and disappears from the Player pool
+entirely, since a `PoolPlayer` row requires the valuation fields it no
+longer has.
+
+One consequence worth knowing, not a bug: ignoring a player who was safely
+within a position's "dedicated starter" zone (an elite starter, not a
+borderline one) can leave that position's replacement level -- and
+everyone else's PAR -- **exactly unchanged**. Removing them shifts every
+lower-ranked player at that position up by one slot uniformly, which the
+two-pass greedy allocation (`replacement.ts`) cancels out precisely at the
+boundary: one fewer player is needed in the FLEX-competition leftover pool
+for that position because one more got absorbed into the now-uniformly-
+shifted dedicated tier. Ignoring the actual boundary/replacement player
+*does* move it, immediately and visibly -- verified live, e.g. Tony Pollard
+(the RB boundary player in a stock 12-team league) shifting RB replacement
+level from 155.8 to 152.1 the moment he's ignored, while ignoring RB1/RB2
+first leaves it untouched.
+
+Unlike K/DST placeholders, an ignored player is a real `PlayerProjection`
+with a real name/team/ADP, so `DraftSearch` (which always searches the full
+unfiltered player list) still finds and can draft them -- tagged "ignored"
+in the dropdown rather than hidden, since a real draft can still take an
+injured player and the pick still needs to be logged. `usePlayerPool.ts`'s
+`boardPlayersById` is therefore built from every real projection (not just
+the valued ones `fullBoard.players` carries), joining in points/rank only
+where a player was actually scored, so an ignored-but-drafted player still
+renders with their real name on the Board and My Roster instead of going
+blank -- `BoardPlayer.isIgnored` tells cell rendering to skip the
+now-meaningless points/rank fields the same way `isPlaceholder` already
+does. Once ignored, a player has no pool row left to reopen the detail
+panel from, so the rail's **Ignored players** section (hidden when empty,
+same as Notices) is the only way back -- it lists every ignored player by
+name/team with a "Restore" button.
+
 **Player pool Value column**: superseded the earlier ranking-mode abstraction
 (`lib/ranking/modes.ts`, deleted) with the handoff's own, simpler, live-draft
 semantics in `lib/ranking/pool.ts`: `Value = ADP − (current overall pick)`.

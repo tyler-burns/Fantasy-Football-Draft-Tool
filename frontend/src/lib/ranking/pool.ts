@@ -9,6 +9,21 @@
 import type { PlayerProjection } from '../projections/types'
 import type { PlayerValuation, ValuationBoard } from '../valuation/models'
 
+/** Drops any projection the user has flagged as stale (injury/suspension
+ * not yet reflected in the source data) BEFORE it ever reaches scoring --
+ * so an ignored player never consumes a starter/FLEX slot in replacement
+ * level, never anchors anyone's VONA, and never shows a misleading PAR of
+ * its own. Generic over the id field alone so it works on raw
+ * PlayerProjection[] (the actual call site, in usePlayerPool.ts) without a
+ * needless intermediate type. */
+export function excludeIgnored<T extends { readonly player_id: string }>(
+  items: readonly T[],
+  ignoredIds: ReadonlySet<string>,
+): T[] {
+  if (ignoredIds.size === 0) return [...items]
+  return items.filter((item) => !ignoredIds.has(item.player_id))
+}
+
 export interface PoolPlayer {
   readonly player_id: string
   readonly position: string

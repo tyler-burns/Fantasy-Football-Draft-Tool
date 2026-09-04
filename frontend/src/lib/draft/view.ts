@@ -21,6 +21,12 @@ export interface BoardPlayer {
   // that would otherwise look like real (but meaningless: rank 0, 0 points)
   // data.
   readonly isPlaceholder: boolean
+  // True for a real player excluded from valuation (injured/suspended, an
+  // out-of-date projection) -- unlike isPlaceholder, name/team ARE real;
+  // only points/position_rank are meaningless (always 0, since the player
+  // never entered the scored pool), so cell rendering skips those the same
+  // way it does for a placeholder.
+  readonly isIgnored: boolean
 }
 
 export interface BoardCell {

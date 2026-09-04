@@ -4,7 +4,7 @@ import type { PlayerValuation, ValuationBoard } from '../valuation/models'
 import { player } from '../__fixtures__/pools'
 import { buildBoard } from '../valuation/board'
 import { DEFAULT_LEAGUE } from '../valuation/league'
-import { buildPoolPlayers, computeDraftValue, computeDynamicVona, computePositionRanks, valueTone } from './pool'
+import { buildPoolPlayers, computeDraftValue, computeDynamicVona, computePositionRanks, excludeIgnored, valueTone } from './pool'
 
 function makeProj(id: string, position: string, adp: number | null): PlayerProjection {
   return {
@@ -17,6 +17,25 @@ function makeProj(id: string, position: string, adp: number | null): PlayerProje
     adp, pos_adp: adp, reference_pts_ppr: null, search_full_name: `player${id}`,
   }
 }
+
+describe('excludeIgnored', () => {
+  it('drops items whose player_id is in the ignored set', () => {
+    const items = [{ player_id: 'a' }, { player_id: 'b' }, { player_id: 'c' }]
+    expect(excludeIgnored(items, new Set(['b']))).toEqual([{ player_id: 'a' }, { player_id: 'c' }])
+  })
+
+  it('empty ignored set -> a copy of the input, unchanged', () => {
+    const items = [{ player_id: 'a' }]
+    const result = excludeIgnored(items, new Set())
+    expect(result).toEqual(items)
+    expect(result).not.toBe(items) // a copy, not the same array reference
+  })
+
+  it('ignoring every item leaves an empty array', () => {
+    const items = [{ player_id: 'a' }, { player_id: 'b' }]
+    expect(excludeIgnored(items, new Set(['a', 'b']))).toEqual([])
+  })
+})
 
 describe('computeDraftValue', () => {
   it('adp 9, clock at pick 1 (index 0) -> +8', () => {

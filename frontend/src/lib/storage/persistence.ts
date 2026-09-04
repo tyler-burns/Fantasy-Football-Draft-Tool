@@ -33,6 +33,7 @@ interface PersistedConfig {
   scoring: { preset: PresetName | 'custom'; config: ScoringConfig }
   league: PersistedLeague
   mySlot?: number
+  ignoredIds?: string[]
 }
 
 interface PersistedDraft {
@@ -44,6 +45,7 @@ export interface LoadedConfig {
   scoring: ScoringState
   league: LeagueConfig
   mySlot: number
+  ignoredIds: string[]
   warning: string | null
 }
 
@@ -84,9 +86,16 @@ export function saveConfig(
   scoring: ScoringState,
   league: LeagueConfig,
   mySlot: number,
+  ignoredIds: readonly string[],
   storage: Storage = window.localStorage,
 ): void {
-  const payload: PersistedConfig = { version: VERSION, scoring, league: serializeLeague(league), mySlot }
+  const payload: PersistedConfig = {
+    version: VERSION,
+    scoring,
+    league: serializeLeague(league),
+    mySlot,
+    ignoredIds: [...ignoredIds],
+  }
   try {
     storage.setItem(CONFIG_KEY, JSON.stringify(payload))
   } catch {
@@ -120,7 +129,7 @@ function isPersistedScoringShape(value: unknown): value is { preset: PresetName 
 export function loadConfig(storage: Storage = window.localStorage): LoadedConfig {
   const raw = storage.getItem(CONFIG_KEY)
   if (raw === null) {
-    return { scoring: DEFAULT_SCORING, league: INITIAL_LEAGUE, mySlot: DEFAULT_MY_SLOT, warning: null }
+    return { scoring: DEFAULT_SCORING, league: INITIAL_LEAGUE, mySlot: DEFAULT_MY_SLOT, ignoredIds: [], warning: null }
   }
 
   let parsed: unknown
@@ -131,6 +140,7 @@ export function loadConfig(storage: Storage = window.localStorage): LoadedConfig
       scoring: DEFAULT_SCORING,
       league: INITIAL_LEAGUE,
       mySlot: DEFAULT_MY_SLOT,
+      ignoredIds: [],
       warning: 'Saved settings could not be read and were reset.',
     }
   }
@@ -140,6 +150,7 @@ export function loadConfig(storage: Storage = window.localStorage): LoadedConfig
       scoring: DEFAULT_SCORING,
       league: INITIAL_LEAGUE,
       mySlot: DEFAULT_MY_SLOT,
+      ignoredIds: [],
       warning: 'Saved settings were an unrecognized version and were reset.',
     }
   }
@@ -173,7 +184,15 @@ export function loadConfig(storage: Storage = window.localStorage): LoadedConfig
     mySlot = Math.min(payload.mySlot, league.teams)
   }
 
-  return { scoring, league, mySlot, warning: warnings.length > 0 ? warnings.join(' ') : null }
+  // Same backward-compat treatment as mySlot: absent (pre-ignoredIds) or
+  // malformed -> silently empty, no warning. Low stakes either way -- worst
+  // case a previously-ignored player quietly reappears in the pool.
+  const ignoredIds =
+    Array.isArray(payload.ignoredIds) && payload.ignoredIds.every((id) => typeof id === 'string')
+      ? payload.ignoredIds
+      : []
+
+  return { scoring, league, mySlot, ignoredIds, warning: warnings.length > 0 ? warnings.join(' ') : null }
 }
 
 export function saveDraft(draftedIds: readonly string[], storage: Storage = window.localStorage): void {

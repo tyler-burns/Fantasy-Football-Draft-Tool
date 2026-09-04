@@ -3,7 +3,7 @@ import { PLACEHOLDER_NAME, parsePlaceholderPickId } from '../lib/draft/placehold
 import { draftShape, nextPickIndexForSlot, slotForPick, totalPicks } from '../lib/draft/snake'
 import type { BoardPlayer } from '../lib/draft/view'
 import type { PlayerProjection } from '../lib/projections/types'
-import { buildPoolPlayers, computeDynamicVona, computePositionRanks, type PoolPlayer } from '../lib/ranking/pool'
+import { buildPoolPlayers, computeDynamicVona, computePositionRanks, excludeIgnored, type PoolPlayer } from '../lib/ranking/pool'
 import { toScoredPlayers } from '../lib/valuation/adapter'
 import { buildBoard } from '../lib/valuation/board'
 import type { LeagueConfig } from '../lib/valuation/league'
@@ -20,15 +20,25 @@ export function usePlayerPool(
   players: readonly PlayerProjection[],
   scoringConfig: ScoringConfig,
   league: LeagueConfig,
+  ignoredSet: ReadonlySet<string>,
   draftedSet: ReadonlySet<string>,
   clockIndex: number,
   filters: RowFilters,
   sort: PoolSort,
   availableOnly: boolean,
 ) {
+  // Unfiltered: DraftSearch and the Board need to resolve EVERY real
+  // player, including ignored ones (a real draft can still take them).
   const projectionsById = useMemo(() => new Map(players.map((p) => [p.player_id, p])), [players])
 
-  const scored = useMemo(() => toScoredPlayers(players, scoringConfig), [players, scoringConfig])
+  // Ignored players (injury/suspension the projection source hasn't caught
+  // up with) are dropped before scoring ever sees them -- they never
+  // consume a replacement-level slot, anchor anyone's VONA, or get a PAR of
+  // their own. lib/valuation/adapter.ts stays untouched; this filter lives
+  // entirely outside the Python-ported boundary, same as the K/DST
+  // placeholder mechanism.
+  const valuablePlayers = useMemo(() => excludeIgnored(players, ignoredSet), [players, ignoredSet])
+  const scored = useMemo(() => toScoredPlayers(valuablePlayers, scoringConfig), [valuablePlayers, scoringConfig])
 
   // Replacement levels are identical between these two boards (both derive
   // from the same full `scored` pool -- see valuation/board.ts's
@@ -100,24 +110,35 @@ export function usePlayerPool(
     return map
   }, [availablePlayers, draftedPlayers])
 
+  const valuedById = useMemo(() => new Map(fullBoard.players.map((pv) => [pv.player_id, pv])), [fullBoard])
+
+  // Built from EVERY real player (not just the valued ones fullBoard.players
+  // carries), so an ignored player who still gets drafted for real -- or
+  // just sits on someone's roster after being flagged post-pick -- renders
+  // with their real name/team on the Board and My Roster instead of going
+  // blank. Only points/position_rank are meaningless for one (always 0,
+  // since they never entered the scored pool); isIgnored tells the Board
+  // cell to skip those fields the same way it already does for a
+  // placeholder.
   const boardPlayersById = useMemo(() => {
     const map = new Map<string, BoardPlayer>()
-    for (const pv of fullBoard.players) {
-      const projection = projectionsById.get(pv.player_id)
-      map.set(pv.player_id, {
-        player_id: pv.player_id,
-        name: projection?.name ?? null,
-        team: projection?.team ?? null,
-        position: pv.position,
-        position_rank: positionRanks.get(pv.player_id) ?? 0,
-        points: pv.points,
-        adp: projection?.adp ?? null,
+    for (const projection of players) {
+      const valued = valuedById.get(projection.player_id)
+      map.set(projection.player_id, {
+        player_id: projection.player_id,
+        name: projection.name,
+        team: projection.team,
+        position: valued?.position ?? projection.position ?? projection.fantasy_positions[0] ?? 'FLEX',
+        position_rank: positionRanks.get(projection.player_id) ?? 0,
+        points: valued?.points ?? 0,
+        adp: projection.adp,
         isPlaceholder: false,
+        isIgnored: ignoredSet.has(projection.player_id),
       })
     }
-    // K/DST placeholders (lib/draft/placeholder.ts) never enter `scored` --
-    // there's no real projection behind them -- so they need a synthetic
-    // entry here to render as anything but a blank Board cell.
+    // K/DST placeholders (lib/draft/placeholder.ts) never have a real
+    // projection at all -- there's no player_id to iterate above -- so they
+    // need a synthetic entry here to render as anything but a blank cell.
     for (const id of draftedSet) {
       const position = parsePlaceholderPickId(id)
       if (!position) continue
@@ -130,10 +151,11 @@ export function usePlayerPool(
         points: 0,
         adp: null,
         isPlaceholder: true,
+        isIgnored: false,
       })
     }
     return map
-  }, [fullBoard, positionRanks, projectionsById, draftedSet])
+  }, [players, valuedById, positionRanks, ignoredSet, draftedSet])
 
   return { fullBoard, rows, positionCounts, boardPlayersById, poolPlayersById, projectionsById }
 }

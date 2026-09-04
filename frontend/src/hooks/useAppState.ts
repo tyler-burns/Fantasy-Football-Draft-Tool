@@ -16,6 +16,13 @@ export interface AppState {
   readonly league: LeagueConfig
   readonly mySlot: number // 1-based, 1..league.teams
   readonly draftedIds: readonly string[] // ordered = draft order; undo is a pop
+  // Real players excluded from scoring/valuation entirely -- an injury or
+  // suspension the projection source hasn't caught up with. Independent of
+  // draftedIds (a player can be ignored and never drafted, or drafted then
+  // later flagged) and survives 'resetDraft' -- real-world injury status
+  // doesn't change just because a mock draft gets reset -- but not
+  // 'resetAll', which is a genuine fresh start.
+  readonly ignoredIds: readonly string[]
 }
 
 const TEAM_OPTIONS = [8, 10, 12, 14] as const
@@ -32,6 +39,8 @@ export type AppAction =
   | { type: 'resetDraft' }
   | { type: 'resetAll' }
   | { type: 'pruneDrafted'; keptIds: readonly string[] }
+  | { type: 'ignorePlayer'; playerId: string }
+  | { type: 'unignorePlayer'; playerId: string }
   | { type: 'replaceState'; state: AppState }
 
 function appReducer(state: AppState, action: AppAction, initial: AppState): AppState {
@@ -96,6 +105,13 @@ function appReducer(state: AppState, action: AppAction, initial: AppState): AppS
     case 'pruneDrafted':
       return { ...state, draftedIds: action.keptIds }
 
+    case 'ignorePlayer':
+      if (state.ignoredIds.includes(action.playerId)) return state // dedupe
+      return { ...state, ignoredIds: [...state.ignoredIds, action.playerId] }
+
+    case 'unignorePlayer':
+      return { ...state, ignoredIds: state.ignoredIds.filter((id) => id !== action.playerId) }
+
     case 'replaceState':
       return action.state
   }
@@ -109,6 +125,7 @@ function initAppState(storage: Storage): { state: AppState; warnings: string[] }
     league: configResult.league,
     mySlot: configResult.mySlot,
     draftedIds: draftResult.draftedIds,
+    ignoredIds: configResult.ignoredIds,
   }
   const warnings = [configResult.warning, draftResult.warning].filter((w): w is string => w !== null)
   return { state, warnings }
@@ -119,6 +136,7 @@ export const INITIAL_APP_STATE: AppState = {
   league: INITIAL_LEAGUE,
   mySlot: 1,
   draftedIds: [],
+  ignoredIds: [],
 }
 
 /** League/scoring field updates that need free-form validation (numeric
@@ -137,16 +155,17 @@ export function useAppState(storage: Storage = window.localStorage) {
   )
 
   const draftedSet = useMemo(() => new Set(state.draftedIds), [state.draftedIds])
+  const ignoredSet = useMemo(() => new Set(state.ignoredIds), [state.ignoredIds])
 
   useEffect(() => {
-    saveConfig(state.scoring, state.league, state.mySlot, storage)
-  }, [state.scoring, state.league, state.mySlot, storage])
+    saveConfig(state.scoring, state.league, state.mySlot, state.ignoredIds, storage)
+  }, [state.scoring, state.league, state.mySlot, state.ignoredIds, storage])
 
   useEffect(() => {
     saveDraft(state.draftedIds, storage)
   }, [state.draftedIds, storage])
 
-  return { state, dispatch, draftedSet, loadWarnings }
+  return { state, dispatch, draftedSet, ignoredSet, loadWarnings }
 }
 
 export { TEAM_OPTIONS }

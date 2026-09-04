@@ -14,7 +14,7 @@ import { DEFAULT_LEAGUE } from '../valuation/league'
 function player(id: string, position: string, posRank: number): BoardPlayer {
   return {
     player_id: id, name: `Player ${id}`, team: 'BUF', position, position_rank: posRank,
-    points: 100, adp: 1, isPlaceholder: false,
+    points: 100, adp: 1, isPlaceholder: false, isIgnored: false,
   }
 }
 
